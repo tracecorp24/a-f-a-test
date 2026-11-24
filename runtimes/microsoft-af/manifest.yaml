@@ -1,0 +1,18 @@
+id: microsoft-af
+upstream: https://github.com/microsoft/agent-framework
+runtime: python
+package: agent-framework
+release_version: "0.1.0"
+image_digest: "sha256:b1a2c3d4e5f60718293a4b5c6d7e8f9012345678"
+lockfile_sha256: "9876543210abcdef0123456789abcdef01234567"
+docs_revision: "v0.1.0"
+worker_protocol: 1
+capabilities:
+  tool_calling: verified
+  streaming: verified
+  workflow_executor: verified
+  gateway_compatibility: verified
+security:
+  sbom_ref: artifacts/sbom/microsoft-af.json
+  scan_status: passed
+status: ready_cold

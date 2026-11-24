@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arena-cli"
+version = "0.1.0"
+description = "Agentic Arena Command Line Interface"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "arena-kernel",
+    "arena-contracts",
+    "click>=8.0.0",
+    "pyyaml>=6.0.0",
+]
+
+[project.scripts]
+arena = "arena_cli.main:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arena_cli"]

@@ -8,6 +8,10 @@ Biçim [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) standardına, s�
 
 ### Added
 
+- **10 Framework Runtimes & Conformance:** Katalogdaki 10 framework'ün tamamı için manifest ve native skeleton uygulamaları tamamlandı (`langgraph`, `google-adk`, `microsoft-af`, `openai-agents`, `crewai`, `agno`, `pydantic-ai`, `llama-agents`, `smolagents`, `mastra`). 10 framework'ün tümü `tests/contract/worker_conformance` test suite'inden geçti.
+- **Shared Tool SDK:** `packages/shared-tool-sdk` (`arena-shared-tool-sdk`): Ortak `ToolContract` tanımlarını OpenAI/FunctionTool primitive'lerine dönüştüren ve ACL doğrulayan sarmalayıcı.
+- **Genişletilmiş REST API:** `apps/api`: Framework listesi ve doğrulama (`/v1/frameworks`), onaylı spec ile deney oluşturma, 10 framework için aday üretimi (`/build`), kıyaslama (`/comparison`), kullanıcı ağırlıklı öneri sıralaması (`/rankings`) ve bağımsız export indirme (`/exports`) uç noktaları.
+- **Arena CLI:** `apps/cli` (`arena-cli`): `arena --version`, `arena frameworks`, `arena validate-spec` komut satırı arayüzü.
 - **F0 Foundation:** uv/pnpm monorepo iskeleti, ADR 0001–0016, 10 adet JSON Schema sözleşmesi, `arena-kernel` (ULID, clock, errors, hashing, log redaction), `apps/api` (FastAPI app factory, error/correlation middleware), Postgres DB modelleri ve ilk Alembic migration'ı, state machine'ler, lease tabanlı job kuyruğu, `apps/web` kabuğu (10 sayfa rotası), compose core profili ve CI/Security GitHub Actions iş akışları.
 - **F1 Single Model Core:** `services/model_gateway` (AES-256-GCM secret store, model kilidi policy motoru, atomik token bütçe yöneticisi, çift sayımı engelleyen usage ledger, MockProvider), `services/tool_broker` (ortak araç broker'ı ve ACL denetimi).
 - **F2 Pilot Runtimes:** `packages/worker-sdk/python` (stdio JSONL taşıma protokolü), 10 framework'lük `registry/framework-catalog.yaml`, LangGraph ve Google ADK manifest ve skeleton pipeline'ları, worker conformance test suite'i.

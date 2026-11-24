@@ -19,53 +19,53 @@ frameworks:
     runtime: python
     paradigm: "Agent / executor / workflow"
     upstream: https://github.com/microsoft/agent-framework
-    status: planned
+    status: ready_cold
 
   - id: openai-agents
     name: OpenAI Agents SDK
     runtime: python
     paradigm: "Agent loop / handoff"
     upstream: https://github.com/openai/openai-agents-python
-    status: planned
+    status: ready_cold
 
   - id: crewai
     name: CrewAI
     runtime: python
     paradigm: "Crew / role / task / flow"
     upstream: https://github.com/crewAIInc/crewAI
-    status: planned
+    status: ready_cold
 
   - id: agno
     name: Agno
     runtime: python
     paradigm: "Agent / Team / Workflow"
     upstream: https://github.com/agno-agi/agno
-    status: planned
+    status: ready_cold
 
   - id: pydantic-ai
     name: Pydantic AI
     runtime: python
     paradigm: "Typed agent / dependency / graph"
     upstream: https://github.com/pydantic/pydantic-ai
-    status: planned
+    status: ready_cold
 
   - id: llama-agents
     name: LlamaAgents
     runtime: python
     paradigm: "Event-driven async workflow"
     upstream: https://github.com/run-llama/llama-agents
-    status: planned
+    status: ready_cold
 
   - id: smolagents
     name: Smolagents
     runtime: python
     paradigm: "Code / tool-calling agent"
     upstream: https://github.com/huggingface/smolagents
-    status: planned
+    status: ready_cold
 
   - id: mastra
     name: Mastra
     runtime: typescript
     paradigm: "Agent / workflow"
     upstream: https://github.com/mastra-ai/mastra
-    status: planned
+    status: ready_cold

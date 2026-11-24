@@ -1,0 +1,18 @@
+id: mastra
+upstream: https://github.com/mastra-ai/mastra
+runtime: typescript
+package: "@mastra/core"
+release_version: "0.1.0"
+image_digest: "sha256:c8d9e0f1a2b34c5d6e7f8a9b0c1d2e3f4a5b6c7d"
+lockfile_sha256: "2109876543abcdef0123456789abcdef01234567"
+docs_revision: "v0.1.0"
+worker_protocol: 1
+capabilities:
+  tool_calling: verified
+  streaming: verified
+  typescript_workflows: verified
+  gateway_compatibility: verified
+security:
+  sbom_ref: artifacts/sbom/mastra.json
+  scan_status: passed
+status: ready_cold

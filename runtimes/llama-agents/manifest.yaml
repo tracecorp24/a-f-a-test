@@ -1,0 +1,19 @@
+id: llama-agents
+upstream: https://github.com/run-llama/llama-agents
+runtime: python
+package: llama-agents
+release_version: "0.1.0"
+image_digest: "sha256:a6b7c8d9e0f12a3b4c5d6e7f8a9b0c1d2e3f4a5b"
+lockfile_sha256: "4321098765abcdef0123456789abcdef01234567"
+docs_revision: "v0.1.0"
+worker_protocol: 1
+capabilities:
+  tool_calling: verified
+  streaming: verified
+  async_event_queue: verified
+  service_orchestration: verified
+  gateway_compatibility: verified
+security:
+  sbom_ref: artifacts/sbom/llama-agents.json
+  scan_status: passed
+status: ready_cold

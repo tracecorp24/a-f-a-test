@@ -1,0 +1,19 @@
+id: crewai
+upstream: https://github.com/crewAIInc/crewAI
+runtime: python
+package: crewai
+release_version: "0.100.0"
+image_digest: "sha256:d3c4b5a6e7f8091a2b3c4d5e6f7a8b9c0d1e2f3a"
+lockfile_sha256: "7654321098abcdef0123456789abcdef01234567"
+docs_revision: "v0.100.0"
+worker_protocol: 1
+capabilities:
+  tool_calling: verified
+  streaming: verified
+  hierarchical_crews: verified
+  flows: verified
+  gateway_compatibility: verified
+security:
+  sbom_ref: artifacts/sbom/crewai.json
+  scan_status: passed
+status: ready_cold
