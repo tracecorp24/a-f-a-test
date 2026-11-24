@@ -2,3 +2,6 @@ packages:
   - "apps/*"
   - "packages/contracts/typescript"
   - "packages/worker-sdk/typescript"
+
+onlyBuiltDependencies:
+  - esbuild
