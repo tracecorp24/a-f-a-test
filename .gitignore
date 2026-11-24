@@ -1,0 +1,53 @@
+# --- Secrets & local configuration ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- Runtime data (user volumes, never committed) ---
+data/
+logs/
+*.log
+spool/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# --- Node / TypeScript ---
+node_modules/
+.pnpm-store/
+*.tsbuildinfo
+.vite/
+.turbo/
+playwright-report/
+test-results/
+
+# --- Generated artifacts ---
+runtimes/*/docs-index/
+sbom/
+
+# --- Editors & OS ---
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
