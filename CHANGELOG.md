@@ -8,6 +8,9 @@ Biçim [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) standardına, s�
 
 ### Added
 
+- **Canlı Benchmark Orkestrasyon Demosu:** `scripts/demo_benchmark.py`: TaskSpec onayından 10 framework çalıştırmasına, usage ledger mutabakatından ADR-007 öneri motoru ve ADR-009 secret-free export'a kadar tüm adımları tek komutla terminalde çalıştıran uçtan uca demo.
+- **Canlı Model Gateway Provider'ı:** `services/model_gateway/src/arena_gateway/adapters/litellm_provider.py`: Canlı OpenAI/LiteLLM uyumlu LLM uç noktalarıyla konuşan, gecikme ölçen ve token hesaplayan adaptör.
+- **Etkileşimli Web Arayüzü:** `apps/web`: Task Studio (interaktif TaskSpec oluşturma ve hash kilitleme), Framework Registry (10 framework doğrulama durumu), Recommendation Arena (canlı ağırlık kaydırıcıları ile sıralama) ve Artifact Exporter (bağımsız proje paketi indirme) ekranları.
 - **10 Framework Runtimes & Conformance:** Katalogdaki 10 framework'ün tamamı için manifest ve native skeleton uygulamaları tamamlandı (`langgraph`, `google-adk`, `microsoft-af`, `openai-agents`, `crewai`, `agno`, `pydantic-ai`, `llama-agents`, `smolagents`, `mastra`). 10 framework'ün tümü `tests/contract/worker_conformance` test suite'inden geçti.
 - **Shared Tool SDK:** `packages/shared-tool-sdk` (`arena-shared-tool-sdk`): Ortak `ToolContract` tanımlarını OpenAI/FunctionTool primitive'lerine dönüştüren ve ACL doğrulayan sarmalayıcı.
 - **Genişletilmiş REST API:** `apps/api`: Framework listesi ve doğrulama (`/v1/frameworks`), onaylı spec ile deney oluşturma, 10 framework için aday üretimi (`/build`), kıyaslama (`/comparison`), kullanıcı ağırlıklı öneri sıralaması (`/rankings`) ve bağımsız export indirme (`/exports`) uç noktaları.
