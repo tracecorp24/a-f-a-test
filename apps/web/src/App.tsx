@@ -130,7 +130,6 @@ const NAVIGATION_SECTIONS = [
   { path: "/", label: "Dashboard", icon: "✦" },
   { path: "/task-studio", label: "Task Studio", icon: "✎" },
   { path: "/pipeline-designer", label: "Pipeline Designer", icon: "⎇" },
-  { path: "/framework-hub", label: "Framework Hub", icon: "▦" },
   { path: "/development-studio", label: "Development Studio", icon: "⚙" },
   { path: "/execution-arena", label: "Execution Arena", icon: "▶" },
   { path: "/telemetry-center", label: "Telemetry Center", icon: "⌁" },
@@ -583,58 +582,8 @@ function DashboardTab() {
         </div>
       </section>
 
-      {/* SECTION 3: FRAMEWORK HUB MINI-PANEL (Overview Grid of 10 Frameworks) */}
-      <section style={{ backgroundColor: THEME.panel, border: `1px solid ${THEME.line}`, borderRadius: 8, padding: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div>
-            <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Framework Hub Mini-Pencere</h2>
-            <span style={{ fontSize: 11, color: THEME.muted }}>Kayıtlı 10 framework ve hazır çalışan adaptör profilleri</span>
-          </div>
-          <Link to="/framework-hub" style={{ color: THEME.cyan, fontSize: 12, fontWeight: 600, textDecoration: "none" }}>
-            10x10 Yetenek Matrisini Aç →
-          </Link>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
-          {FRAMEWORKS_DATA.map((fw) => (
-            <div
-              key={fw.name}
-              style={{
-                backgroundColor: THEME.panelAlt,
-                border: `1px solid ${THEME.line}`,
-                borderRadius: 6,
-                padding: 12,
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                <b style={{ fontSize: 13, color: THEME.text }}>{fw.name}</b>
-                <span style={{ fontSize: 9, color: THEME.green, backgroundColor: "rgba(82, 216, 164, 0.15)", padding: "1px 5px", borderRadius: 3 }}>
-                  v{fw.version}
-                </span>
-              </div>
-              <div style={{ fontSize: 10, color: THEME.muted, marginBottom: 8 }}>
-                {fw.architecture}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 10 }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: THEME.muted }}>Kalite:</span>
-                  <span style={{ color: THEME.text, fontWeight: 600 }}>{fw.v[0]}</span>
-                </div>
-                <div style={{ height: 3, background: "#202a36", borderRadius: 2, overflow: "hidden" }}>
-                  <div style={{ width: `${fw.v[0]}%`, height: "100%", background: THEME.cyan }} />
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-                  <span style={{ color: THEME.muted }}>Hız:</span>
-                  <span style={{ color: THEME.text, fontWeight: 600 }}>{fw.v[1]}</span>
-                </div>
-                <div style={{ height: 3, background: "#202a36", borderRadius: 2, overflow: "hidden" }}>
-                  <div style={{ width: `${fw.v[1]}%`, height: "100%", background: THEME.blue }} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* SECTION 3: FRAMEWORK HUB (FULL 10x10 CAPABILITY MATRIX & PROFILES - ALWAYS OPEN) */}
+      <FrameworkHubSection />
     </div>
   );
 }
@@ -802,7 +751,7 @@ function TaskStudioTab() {
               lineHeight: 1.6,
             }}
           >
-{`schema_version: 1
+            {`schema_version: 1
 project_id: ${selectedTemplate}
 input_mode: natural_language
 comparison_mode: native
@@ -1117,9 +1066,9 @@ function PipelineDesignerTab() {
 }
 
 // ============================================================================
-// 4. FRAMEWORK HUB TAB (Capability Matrix, Search, Filter & Radar Profile)
+// FRAMEWORK HUB (Embedded directly into DashboardTab - Always Open)
 // ============================================================================
-function FrameworkHubTab() {
+function FrameworkHubSection() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [selectedFwName, setSelectedFwName] = useState("LangGraph");
@@ -1138,16 +1087,16 @@ function FrameworkHubTab() {
   const selectedFw = FRAMEWORKS_DATA.find((f) => f.name === selectedFwName) ?? FRAMEWORKS_DATA[0]!;
 
   return (
-    <div>
+    <section id="framework-hub" style={{ backgroundColor: THEME.panel, border: `1px solid ${THEME.line}`, borderRadius: 8, padding: 20 }}>
       {/* Header with Compact Inline Status */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 18 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}>
         <div>
-          <div style={{ color: THEME.cyan, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 4, fontWeight: 700 }}>
-            CAPABILITY RESEARCH REPOSITORY
+          <div style={{ color: THEME.cyan, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 3, fontWeight: 700 }}>
+            FRAMEWORK HUB · CANLI YETENEK & PROFİL MERKEZİ
           </div>
-          <h1 style={{ fontSize: 26, margin: "0 0 4px", fontWeight: 700 }}>Framework Hub & 10x10 Matris</h1>
-          <p style={{ color: THEME.muted, margin: 0, fontSize: 13 }}>
-            Yerel ve adaptör tabanlı yeteneklerin ayrıntılı karşılaştırma referansı.
+          <h2 style={{ fontSize: 17, margin: "0 0 4px", fontWeight: 700 }}>10x10 Yetenek Matrisi & Framework Profilleri</h2>
+          <p style={{ color: THEME.muted, margin: 0, fontSize: 12 }}>
+            Kayıtlı 10 framework'ün yerel (native) ve adaptör yetenekleri, kalite/hız profilleri ve hücre denetimi (Dashboard üzerinde her zaman açık).
           </p>
         </div>
 
@@ -1157,7 +1106,7 @@ function FrameworkHubTab() {
             display: "flex",
             alignItems: "center",
             gap: 12,
-            backgroundColor: THEME.panel,
+            backgroundColor: THEME.panelAlt,
             border: `1px solid ${THEME.line}`,
             padding: "6px 14px",
             borderRadius: 6,
@@ -1367,8 +1316,12 @@ function FrameworkHubTab() {
           </section>
         </div>
       </div>
-    </div>
+    </section>
   );
+}
+
+function FrameworkHubTab() {
+  return <DashboardTab />;
 }
 
 // ============================================================================
@@ -1536,7 +1489,7 @@ function DevelopmentStudioTab() {
               }}
             >
               {activeTab === "code" &&
-`"""Native pipeline worker for ${selectedFw}."""
+                `"""Native pipeline worker for ${selectedFw}."""
 import json
 import sys
 from arena_worker_sdk.protocol import read_contract_input, emit_event
@@ -1556,7 +1509,7 @@ def main():
 if __name__ == "__main__":
     main()`}
               {activeTab === "manifest" &&
-`schema_version: 1
+                `schema_version: 1
 framework: "${selectedFw}"
 version: "${FRAMEWORKS_DATA.find((f) => f.name === selectedFw)?.version || "1.0.0"}"
 entrypoint: "python skeleton/main.py"
@@ -1566,7 +1519,7 @@ conformance:
   manifest_valid: true
   protocol_version: "2.1"`}
               {activeTab === "docker" &&
-`FROM python:3.11-slim
+                `FROM python:3.11-slim
 WORKDIR /workspace
 COPY pyproject.toml .
 RUN pip install --no-cache-dir .
@@ -2182,19 +2135,19 @@ function ComparisonLabTab() {
 
   const ranked: RankedItem[] = totalW
     ? eligiblePool
-        .map((fw) => {
-          const w0 = weights[0] ?? 0;
-          const w1 = weights[1] ?? 0;
-          const w2 = weights[2] ?? 0;
-          const w3 = weights[3] ?? 0;
-          const score = (fw.v[0] * w0 + fw.v[1] * w1 + fw.v[2] * w2 + fw.v[3] * w3) / totalW;
-          return {
-            name: fw.name,
-            v: fw.v,
-            score,
-          };
-        })
-        .sort((a, b) => b.score - a.score)
+      .map((fw) => {
+        const w0 = weights[0] ?? 0;
+        const w1 = weights[1] ?? 0;
+        const w2 = weights[2] ?? 0;
+        const w3 = weights[3] ?? 0;
+        const score = (fw.v[0] * w0 + fw.v[1] * w1 + fw.v[2] * w2 + fw.v[3] * w3) / totalW;
+        return {
+          name: fw.name,
+          v: fw.v,
+          score,
+        };
+      })
+      .sort((a, b) => b.score - a.score)
     : [];
 
   const top = ranked[0] ?? null;
