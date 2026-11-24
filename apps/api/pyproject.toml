@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arena-api"
+version = "0.1.0"
+description = "Agentic Arena Control Plane API"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "arena-kernel",
+    "arena-contracts",
+    "arena-controller",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.14.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arena_api"]

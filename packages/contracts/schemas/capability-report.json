@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-arena.org/schemas/capability-report.json",
+  "title": "CapabilityReport",
+  "type": "object",
+  "properties": {
+    "framework_id": { "type": "string" },
+    "checked_at": { "type": "string", "format": "date-time" },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["verified", "pending_provider_probe", "unsupported", "unknown"]
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    }
+  },
+  "required": ["framework_id", "checked_at", "capabilities"],
+  "additionalProperties": false
+}

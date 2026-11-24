@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-arena.org/schemas/run-spec.json",
+  "title": "RunSpec",
+  "type": "object",
+  "properties": {
+    "run_id": { "type": "string" },
+    "candidate_id": { "type": "string" },
+    "experiment_id": { "type": "string" },
+    "input_ref": { "type": "string" },
+    "repetition": { "type": "integer", "minimum": 1 },
+    "seed": { "type": ["integer", "null"] },
+    "order_index": { "type": "integer", "minimum": 0 },
+    "gateway_base_url": { "type": "string" },
+    "tool_broker_url": { "type": "string" },
+    "allowed_tools": { "type": "array", "items": { "type": "string" } },
+    "max_tokens": { "type": "integer", "minimum": 1 },
+    "max_calls": { "type": "integer", "minimum": 1 },
+    "watchdog_seconds": { "type": "integer", "minimum": 1 }
+  },
+  "required": ["run_id", "candidate_id", "experiment_id", "input_ref", "repetition", "gateway_base_url", "tool_broker_url", "max_tokens", "max_calls", "watchdog_seconds"],
+  "additionalProperties": false
+}

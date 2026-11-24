@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-arena.org/schemas/criterion-result.json",
+  "title": "CriterionResult",
+  "type": "object",
+  "properties": {
+    "criterion_id": {
+      "type": "string"
+    },
+    "policy": {
+      "type": "string",
+      "enum": ["required", "preferred", "free", "not_applicable"]
+    },
+    "value": {
+      "type": ["number", "boolean", "string", "null"]
+    },
+    "threshold": {
+      "type": ["number", "boolean", "string", "null"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["passed", "failed", "warning", "unresolved", "unknown"]
+    },
+    "evaluator": {
+      "type": "string"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "sample_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["measured", "provider_reported", "derived", "estimated", "unsupported", "unknown"],
+      "default": "measured"
+    }
+  },
+  "required": ["criterion_id", "policy", "status", "evaluator", "sample_count", "confidence"],
+  "additionalProperties": false
+}

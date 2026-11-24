@@ -1,0 +1,14 @@
+{
+  "name": "@arena/contracts",
+  "version": "0.1.0",
+  "description": "Agentic Arena Data Contracts and Types for TypeScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "echo 'Contracts tested via schema validation'"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

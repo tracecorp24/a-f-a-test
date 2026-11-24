@@ -1,0 +1,57 @@
+schema_version: 1
+project_id: doc-review
+revision: 1
+input_mode: natural_language
+task:
+  objective: "Dokümanları analiz et, çelişkileri bul ve kanıtlı rapor üret."
+  output_schema_ref: schemas/report.json
+  language: tr
+  required_steps: [read_documents, identify_conflicts, cite_evidence]
+  free_design: [agent_count, topology, prompt_strategy, memory_strategy]
+model:
+  connection_ref: user-model-01
+  model_id: selected-model
+  temperature: 0.2
+  max_output_tokens: 4096
+  fallback: disabled
+frameworks:
+  - langgraph
+  - google-adk
+  - microsoft-af
+  - openai-agents
+  - crewai
+  - agno
+  - pydantic-ai
+  - llama-agents
+  - smolagents
+  - mastra
+comparison_mode: native
+inputs:
+  dataset_ref: benchmarks/fixtures/doc-review
+  tools_allowlist: [read_document, find_evidence]
+  internet: false
+criteria:
+  - id: valid_schema
+    policy: required
+    evaluator: json_schema
+    threshold: 1.0
+  - id: conflict_f1
+    policy: required
+    evaluator: labeled_f1
+    threshold: 0.90
+  - id: runtime
+    policy: free
+    max_seconds: null
+  - id: token_usage
+    policy: preferred
+    direction: minimize
+experiment:
+  repetitions: 5
+  execution_order: sequential_interleaved
+  independent_sessions: true
+  build_budget_per_framework: {max_attempts: 4, max_tokens: 60000, max_seconds: 1200}
+  runtime_budget_per_run: {max_calls: 40, max_tokens: 100000, watchdog_seconds: 600}
+  seed_policy: fixed_if_supported
+ranking:
+  weights: {quality: 40, speed: 25, token: 20, reliability: 15}
+  min_quality: 85

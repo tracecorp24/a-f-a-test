@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arena-builder"
+version = "0.1.0"
+description = "Agentic Arena Builder Engine and Clarification Harness"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "arena-kernel",
+    "arena-contracts",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arena_builder"]

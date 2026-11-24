@@ -1,0 +1,20 @@
+{
+  "benchmark_id": "doc-review",
+  "version": 1,
+  "public_samples": [
+    {
+      "path": "public/sample1.txt",
+      "sha256": "42617f6e076628b0305a415ff6c95faadcbaf9d2822a945d8b8e0108ec73d091"
+    },
+    {
+      "path": "public/sample2.txt",
+      "sha256": "3cb40db0bf538a79899ebf8f01b7aef8b72e90c9b450702d7eb4e145f6ebaa6a"
+    }
+  ],
+  "held_out_samples": [
+    {
+      "path": "held-out/eval1.txt",
+      "sha256": "f8a091c6e1db0df5c490a618d37a892b1b3696e5d8ff24bbaf9369d675e18a94"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-arena.org/schemas/error-body.json",
+  "title": "ErrorBody",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]+$",
+      "description": "Standard error code in UPPER_SNAKE_CASE"
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable explanation of error"
+    },
+    "details": {
+      "type": ["object", "array", "null"],
+      "description": "Optional contextual debug details"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Request correlation ID for tracing"
+    },
+    "retryable": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the client should safely retry"
+    }
+  },
+  "required": ["code", "message", "correlation_id", "retryable"],
+  "additionalProperties": false
+}

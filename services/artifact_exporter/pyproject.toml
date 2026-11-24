@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "arena-artifact-exporter"
+version = "0.1.0"
+description = "Agentic Arena Standalone Project Exporter"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "arena-kernel",
+    "arena-contracts",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/arena_artifact_exporter"]

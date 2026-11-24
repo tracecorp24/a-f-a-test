@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-arena.org/schemas/arena-event.json",
+  "title": "ArenaEvent",
+  "type": "object",
+  "properties": {
+    "event_id": { "type": "string" },
+    "run_id": { "type": ["string", "null"] },
+    "candidate_id": { "type": ["string", "null"] },
+    "experiment_id": { "type": "string" },
+    "phase": {
+      "type": "string",
+      "enum": ["clarification", "architecture", "build", "validation", "benchmark", "evaluation", "export"]
+    },
+    "seq": { "type": "integer", "minimum": 0 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "type": { "type": "string", "pattern": "^[a-z0-9_]+\\.[a-z0-9_]+$" },
+    "payload": { "type": "object" }
+  },
+  "required": ["event_id", "experiment_id", "phase", "seq", "timestamp", "type", "payload"],
+  "additionalProperties": false
+}

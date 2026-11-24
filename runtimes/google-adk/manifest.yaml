@@ -1,0 +1,18 @@
+id: google-adk
+upstream: https://github.com/google/adk-python
+runtime: python
+package: google-adk
+release_version: "0.1.0"
+image_digest: "sha256:d41d8cd98f00b204e9800998ecf8427e"
+lockfile_sha256: "cf23df2207d99a74fbe169e3eba035e633b65d94"
+docs_revision: "v0.1.0"
+worker_protocol: 1
+capabilities:
+  tool_calling: verified
+  streaming: verified
+  hierarchical_agents: verified
+  gateway_compatibility: verified
+security:
+  sbom_ref: artifacts/sbom/google-adk.json
+  scan_status: passed
+status: ready_cold

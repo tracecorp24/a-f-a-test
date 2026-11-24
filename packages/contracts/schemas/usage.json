@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-arena.org/schemas/usage.json",
+  "title": "UsageRecord",
+  "type": "object",
+  "properties": {
+    "prompt_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "completion_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "total_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "reasoning_tokens": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "cached_prompt_tokens": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "cost": {
+      "type": ["number", "null"],
+      "minimum": 0
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "usage_source": {
+      "type": "string",
+      "enum": ["measured", "provider_reported", "derived", "estimated", "unsupported", "unknown"]
+    }
+  },
+  "required": ["prompt_tokens", "completion_tokens", "total_tokens", "usage_source"],
+  "additionalProperties": false
+}

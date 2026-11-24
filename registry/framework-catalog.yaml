@@ -1,0 +1,71 @@
+# Framework Catalog: All 10 Frameworks (GP §2, §6.2)
+frameworks:
+  - id: langgraph
+    name: LangGraph
+    runtime: python
+    paradigm: "State / graph"
+    upstream: https://github.com/langchain-ai/langgraph
+    status: ready_cold
+
+  - id: google-adk
+    name: Google ADK
+    runtime: python
+    paradigm: "Hiyerarşik ajanlar / workflow"
+    upstream: https://github.com/google/adk-python
+    status: ready_cold
+
+  - id: microsoft-af
+    name: Microsoft Agent Framework
+    runtime: python
+    paradigm: "Agent / executor / workflow"
+    upstream: https://github.com/microsoft/agent-framework
+    status: planned
+
+  - id: openai-agents
+    name: OpenAI Agents SDK
+    runtime: python
+    paradigm: "Agent loop / handoff"
+    upstream: https://github.com/openai/openai-agents-python
+    status: planned
+
+  - id: crewai
+    name: CrewAI
+    runtime: python
+    paradigm: "Crew / role / task / flow"
+    upstream: https://github.com/crewAIInc/crewAI
+    status: planned
+
+  - id: agno
+    name: Agno
+    runtime: python
+    paradigm: "Agent / Team / Workflow"
+    upstream: https://github.com/agno-agi/agno
+    status: planned
+
+  - id: pydantic-ai
+    name: Pydantic AI
+    runtime: python
+    paradigm: "Typed agent / dependency / graph"
+    upstream: https://github.com/pydantic/pydantic-ai
+    status: planned
+
+  - id: llama-agents
+    name: LlamaAgents
+    runtime: python
+    paradigm: "Event-driven async workflow"
+    upstream: https://github.com/run-llama/llama-agents
+    status: planned
+
+  - id: smolagents
+    name: Smolagents
+    runtime: python
+    paradigm: "Code / tool-calling agent"
+    upstream: https://github.com/huggingface/smolagents
+    status: planned
+
+  - id: mastra
+    name: Mastra
+    runtime: typescript
+    paradigm: "Agent / workflow"
+    upstream: https://github.com/mastra-ai/mastra
+    status: planned

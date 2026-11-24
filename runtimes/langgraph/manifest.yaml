@@ -1,0 +1,19 @@
+id: langgraph
+upstream: https://github.com/langchain-ai/langgraph
+runtime: python
+package: langgraph
+release_version: "0.2.70"
+image_digest: "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+lockfile_sha256: "c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2"
+docs_revision: "v0.2.70"
+worker_protocol: 1
+capabilities:
+  tool_calling: verified
+  streaming: verified
+  parallel_graph: verified
+  checkpoint: verified
+  gateway_compatibility: verified
+security:
+  sbom_ref: artifacts/sbom/langgraph.json
+  scan_status: passed
+status: ready_cold

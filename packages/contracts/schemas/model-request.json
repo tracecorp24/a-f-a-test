@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-arena.org/schemas/model-request.json",
+  "title": "ModelRequest",
+  "type": "object",
+  "properties": {
+    "request_id": { "type": "string" },
+    "phase": {
+      "type": "string",
+      "enum": ["clarification", "architecture", "build", "validation", "benchmark", "evaluation"]
+    },
+    "run_id": { "type": ["string", "null"] },
+    "candidate_id": { "type": ["string", "null"] },
+    "model": { "type": "string" },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": { "type": "string", "enum": ["system", "user", "assistant", "tool"] },
+          "content": { "type": "string" },
+          "tool_call_id": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "required": ["role", "content"]
+      }
+    },
+    "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+    "max_tokens": { "type": "integer", "minimum": 1 },
+    "tools": {
+      "type": "array",
+      "items": { "type": "object" },
+      "default": []
+    }
+  },
+  "required": ["request_id", "phase", "model", "messages"],
+  "additionalProperties": false
+}

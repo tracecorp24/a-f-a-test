@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-arena.org/schemas/framework-manifest.json",
+  "title": "FrameworkManifest",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "upstream": { "type": "string" },
+    "runtime": { "type": "string", "enum": ["python", "typescript"] },
+    "package": { "type": "string" },
+    "release_version": { "type": "string" },
+    "image_digest": { "type": "string" },
+    "lockfile_sha256": { "type": "string" },
+    "docs_revision": { "type": "string" },
+    "worker_protocol": { "type": "integer", "const": 1 },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "enum": ["verified", "pending_provider_probe", "unsupported", "unknown"]
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "sbom_ref": { "type": "string" },
+        "scan_status": { "type": "string", "enum": ["passed", "failed", "warning"] }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["not_installed", "pulling", "ready_cold", "ready_warm", "busy", "degraded", "update_available", "blocked"]
+    }
+  },
+  "required": ["id", "upstream", "runtime", "package", "release_version", "worker_protocol", "capabilities", "status"],
+  "additionalProperties": false
+}

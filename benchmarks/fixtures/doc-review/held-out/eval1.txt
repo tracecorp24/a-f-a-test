@@ -1,0 +1,6 @@
+Gizli Değerlendirme Dokümanı (Held-Out)
+Bu dosya geliştirme döngüsünde asla aday koda verilmez.
+Çelişki Doğrulama Maddesi:
+Referans A, teslim tarihini 15 Ocak iddia ederken, Referans B 28 Şubat olduğunu belirtir.
+Referans A bütçeyi 100.000 USD, Referans B ise 120.000 USD olarak tanımlar.
+Doğru etiketlenmiş çelişki sayısı: 2.

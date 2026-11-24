@@ -1,0 +1,4 @@
+Bölüm A: Proje Teslim Tarihi
+Proje Faz 1 teslim tarihi kesin olarak 15 Ocak 2027 olarak kararlaştırılmıştır.
+Sorumlu birim: Sistem Mühendisliği.
+Bütçe tavanı: 100.000 USD.
