@@ -24,6 +24,7 @@ from arena_kernel.hashing import canonical_json_hash
 from arena_kernel.ids import generate_id
 from arena_kernel.logging import configure_logging, get_logger
 from arena_recommendation.domain.ranking import CandidateBenchmarkData, RankingEngine
+from arena_api.task_design import router as task_design_router
 
 logger = get_logger("arena.api")
 
@@ -36,6 +37,7 @@ def create_app() -> FastAPI:
         version="0.1.0",
         description="REST Control Plane for Agentic Framework Arena",
     )
+    app.include_router(task_design_router)
 
     app.add_middleware(
         CORSMiddleware,

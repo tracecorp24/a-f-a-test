@@ -8,6 +8,11 @@ secrets/
 
 # --- Runtime data (user volumes, never committed) ---
 data/
+!apps/web/src/data/
+apps/web/src/data/*
+!apps/web/src/data/mockData.ts
+!apps/web/src/data/taskQuestions.ts
+!apps/web/src/data/frameworkRuns.ts
 logs/
 *.log
 spool/

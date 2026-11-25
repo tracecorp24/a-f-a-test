@@ -12,6 +12,7 @@ dependencies = [
     "arena-kernel",
     "arena-contracts",
     "arena-controller",
+    "arena-gateway",
     "fastapi>=0.115.0",
     "uvicorn>=0.32.0",
     "sqlalchemy>=2.0.0",

@@ -1,0 +1,66 @@
+.success-test-flow {
+  margin: 20px 0 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.success-test-flow-steps,
+.success-test-flow-branches {
+  list-style: none;
+  padding: 0;
+}
+
+.success-test-flow-steps {
+  display: grid;
+  gap: 22px;
+  max-width: 34rem;
+  margin: 14px auto 0;
+}
+
+.success-test-flow-node {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(145, 160, 180, 0.05);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.success-test-flow-node + .success-test-flow-node::before {
+  position: absolute;
+  inset: -22px 0 auto;
+  content: "↓" / "";
+  color: #53cbe8;
+}
+
+.success-test-flow-node > span {
+  white-space: pre-wrap;
+}
+
+.success-test-flow-decision {
+  border-color: #e7b971;
+}
+
+.success-test-flow-branches {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 8px 0 0;
+}
+
+.success-test-flow-branches li {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  color: #52d8a4;
+}
+
+.success-test-flow-branches li + li {
+  color: #ef8694;
+}

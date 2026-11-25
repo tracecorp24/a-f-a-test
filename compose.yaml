@@ -29,6 +29,9 @@ services:
       ARENA_ENV: development
       ARENA_PORT: 8000
       ARENA_HOST: 0.0.0.0
+      ARENA_DESIGN_MODEL: ${ARENA_DESIGN_MODEL:-}
+      ARENA_DESIGN_API_KEY: ${ARENA_DESIGN_API_KEY:-}
+      ARENA_DESIGN_BASE_URL: ${ARENA_DESIGN_BASE_URL:-https://api.openai.com/v1}
       DATABASE_URL: postgresql+psycopg://arena:arena_secret@postgres:5432/agentic_arena
       ARENA_MASTER_KEY: ${ARENA_MASTER_KEY:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
     ports:
