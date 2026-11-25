@@ -1,14 +1,17 @@
 """Unit and integration tests for apps/api full REST control plane."""
 
+import time
+
 import pytest
 from arena_api.main import create_app
 from fastapi.testclient import TestClient
 
 
 @pytest.fixture
-def client() -> TestClient:
-    app = create_app()
-    return TestClient(app)
+def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+    monkeypatch.setenv("ARENA_STATE_FILE", "")  # do not persist test data
+    with TestClient(create_app()) as test_client:  # keep one event loop for background runs
+        yield test_client
 
 
 def test_frameworks_endpoints(client: TestClient) -> None:
@@ -58,6 +61,12 @@ def test_full_experiment_to_export_lifecycle(client: TestClient) -> None:
     # 7. Run experiment
     res_run = client.post(f"/v1/experiments/{exp_id}/run")
     assert res_run.status_code == 202
+    for _ in range(100):  # the run is asynchronous: wait until it finishes
+        if client.get(f"/v1/experiments/{exp_id}").json()["status"] == "completed":
+            break
+        time.sleep(0.05)
+    else:
+        pytest.fail("experiment did not complete")
 
     # 8. Comparison
     res_comp = client.get(f"/v1/experiments/{exp_id}/comparison")

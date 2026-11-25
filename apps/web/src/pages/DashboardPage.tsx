@@ -1,8 +1,18 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { THEME } from "../data/mockData";
+import { api, STATUS_LABEL, type SystemStatus } from "../api/client";
+import { useExperimentList } from "../api/useExperiment";
 import { PageHeader } from "../components/UI";
 
 export function DashboardPage() {
+  const { list } = useExperimentList();
+  const [system, setSystem] = useState<SystemStatus | null>(null);
+  const [systemError, setSystemError] = useState("");
+  useEffect(() => {
+    api<SystemStatus>("/v1/system/status").then(setSystem).catch((e: Error) => setSystemError(e.message));
+  }, []);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <PageHeader
@@ -155,6 +165,41 @@ export function DashboardPage() {
           Tüm framework'ler aynı görevi, aynı kilitli modeli (örn. gemini-1.5-pro) ve aynı araç yetkilerini kullanır.
           Hiçbir framework'e özel sistem prompt avantajı tanınmaz.
         </div>
+      </section>
+
+      {/* Live system status */}
+      <section className="arena-card arena-card-pad" aria-labelledby="system-status">
+        <h2 id="system-status" style={{ fontSize: 15, fontWeight: 700, margin: "0 0 14px" }}>Sistem Durumu</h2>
+        {systemError ? (
+          <p role="alert" style={{ color: THEME.red, margin: 0 }}>{systemError}</p>
+        ) : (
+          <div style={{ display: "flex", gap: 18, flexWrap: "wrap", fontSize: 12.5 }}>
+            <span style={{ color: system ? THEME.green : THEME.muted }}>● API {system ? "çalışıyor" : "denetleniyor…"}</span>
+            <span style={{ color: system?.fixture.integrity_verified ? THEME.green : THEME.muted }}>
+              {system ? `${system.fixture.integrity_verified ? "✓" : "✗"} Benchmark verisi bütünlüğü (${system.fixture.benchmark_id})` : "…"}
+            </span>
+            <span style={{ color: THEME.muted }}>{system ? `${system.frameworks} framework işçisi` : ""}</span>
+            <span style={{ color: system?.design_model_configured ? THEME.green : THEME.amber }}>
+              {system ? (system.design_model_configured ? "✓ AI görev tasarımı yapılandırıldı" : "AI görev tasarımı için ARENA_DESIGN_MODEL / ARENA_DESIGN_API_KEY tanımlı değil (demo görev kullanılabilir)") : ""}
+            </span>
+          </div>
+        )}
+        <h3 style={{ fontSize: 12, fontWeight: 700, margin: "18px 0 8px", color: THEME.muted, textTransform: "uppercase", letterSpacing: "0.07em" }}>Son Deneyler</h3>
+        {list.length === 0 ? (
+          <p style={{ color: THEME.muted, margin: 0, fontSize: 12.5 }}>Henüz deney yok. Görev Stüdyosu'ndan başlatın.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {list.slice(0, 5).map((e) => (
+              <div key={e.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", fontSize: 12.5, padding: "8px 12px", background: THEME.panelAlt, borderRadius: 8, border: `1px solid ${THEME.lineSubtle}` }}>
+                <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.objective || e.id}</span>
+                <span className="arena-mono" style={{ color: THEME.muted }}>{new Date(e.created_at).toLocaleString("tr-TR")}</span>
+                <span style={{ color: e.status === "completed" ? THEME.green : e.status === "failed" ? THEME.red : THEME.cyan, fontWeight: 600 }}>{STATUS_LABEL[e.status]} · {e.completed_count}/{e.total_count}</span>
+                <Link to="/execution-arena" state={{ experimentId: e.id }} style={{ color: THEME.cyan, textDecoration: "none", fontWeight: 600 }}>Arena</Link>
+                <Link to="/comparison-lab" state={{ experimentId: e.id }} style={{ color: THEME.purple, textDecoration: "none", fontWeight: 600 }}>Karşılaştır</Link>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Quick links */}

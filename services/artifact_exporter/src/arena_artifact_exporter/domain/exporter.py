@@ -1,7 +1,11 @@
 """Standalone Secret-free Project Exporter (F5.4, ADR-009, GP §13.10)."""
 
+import re
 from typing import Any
 from arena_kernel.errors import ArenaError
+
+# Provider-style secret keys ("sk-..." followed by a long token), not words such as "task-".
+_SECRET_PATTERN = re.compile(r"(?<![A-Za-z0-9])sk-[A-Za-z0-9_\-]{16,}")
 
 
 class ArtifactExporter:
@@ -15,7 +19,7 @@ class ArtifactExporter:
     ) -> dict[str, str]:
         """Generate standalone files dictionary."""
         # Security hygiene check: ensure NO secret or master key leaked into export (ADR-009)
-        if "sk-" in pipeline_code or "ARENA_MASTER_KEY" in pipeline_code:
+        if _SECRET_PATTERN.search(pipeline_code) or "ARENA_MASTER_KEY" in pipeline_code:
             raise ArenaError(
                 code="EXPORT_SECRET_DETECTED",
                 message="Export blocked: candidate source code contains hardcoded secrets",
@@ -56,4 +60,5 @@ dependencies = [
             "Dockerfile": dockerfile_content,
             "pyproject.toml": pyproject_content,
             "main.py": pipeline_code,
+            ".env.example": "# Model sağlayıcı anahtarınızı kendi ortamınızda tanımlayın. Bu dosya gizli anahtar içermez.\nOPENAI_API_KEY=\n",
         }

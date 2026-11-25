@@ -4,17 +4,17 @@
   "public_samples": [
     {
       "path": "public/sample1.txt",
-      "sha256": "42617f6e076628b0305a415ff6c95faadcbaf9d2822a945d8b8e0108ec73d091"
+      "sha256": "b8015b67d49605b60ad99376697e798a8272ba44c5401e170a2f7a115989d5ef"
     },
     {
       "path": "public/sample2.txt",
-      "sha256": "3cb40db0bf538a79899ebf8f01b7aef8b72e90c9b450702d7eb4e145f6ebaa6a"
+      "sha256": "881e539e9cee180bbb21d0aaea9da80e155612cff097323786443643ff08d892"
     }
   ],
   "held_out_samples": [
     {
       "path": "held-out/eval1.txt",
-      "sha256": "f8a091c6e1db0df5c490a618d37a892b1b3696e5d8ff24bbaf9369d675e18a94"
+      "sha256": "3f05dc2f9ed99c65736c3b8418b742af48ccdb15b0d0394d9054c1e6b205d648"
     }
   ]
 }

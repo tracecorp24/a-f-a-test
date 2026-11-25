@@ -7,6 +7,7 @@ import { TaskQuestionnaire, type TaskQuestion } from "../components/TaskQuestion
 import { TaskFlowEditor } from "../components/TaskFlowEditor";
 import { flowContext, makeTaskFlow, type TaskFlow } from "../components/taskFlow";
 import { FRAMEWORK_PIPELINES } from "../data/frameworkRuns";
+import { ApiError, FRAMEWORK_IDS, post, rememberExperiment } from "../api/client";
 import { BENCHMARK_QUESTIONS, CLARIFICATION_QUESTIONS, METRIC_DEFINITIONS } from "../data/taskQuestions";
 
 const SAMPLE_OBJECTIVES = [
@@ -42,6 +43,10 @@ export function TaskPipelinePage() {
   const [scopeInstruction, setScopeInstruction] = useState("");
   const [benchmarkInstruction, setBenchmarkInstruction] = useState("");
   const [demoLoaded, setDemoLoaded] = useState(false);
+  const [runNames, setRunNames] = useState<string[]>(() => FRAMEWORKS_DATA.map(({ name }) => name));
+  const [builtInNotice, setBuiltInNotice] = useState(false);
+  const [launching, setLaunching] = useState(false);
+  const [launchError, setLaunchError] = useState("");
 
   const activeStep = TASK_STEPS.findIndex(({ key }) => key === step);
   const nodes = flow.blocks.map(({ label }) => label);
@@ -113,8 +118,22 @@ export function TaskPipelinePage() {
           ],
         }),
       });
-      const draft = await response.json();
-      if (!response.ok) throw new Error(typeof draft.detail === "string" ? draft.detail : "Tasarım isteği tamamlanamadı.");
+      let draft = await response.json().catch(() => null);
+      if (response.status === 503) {
+        // No AI provider configured on the server: fall back to the built-in question sets.
+        const builtIn = mode === "scope" ? CLARIFICATION_QUESTIONS : BENCHMARK_QUESTIONS;
+        draft = {
+          nodes: nodes.filter((node) => node.trim()).length >= 2
+            ? nodes
+            : ["input:Görevi al", "agent:Görevi işle", "validate:Çıktıyı doğrula", "output:Sonucu teslim et"],
+          questions: builtIn.map(([question, ...options]) => ({ question, options })),
+        };
+        setBuiltInNotice(true);
+      } else if (!response.ok || !draft) {
+        throw new Error(typeof draft?.detail === "string" ? draft.detail : "Tasarım isteği tamamlanamadı.");
+      } else {
+        setBuiltInNotice(false);
+      }
       if (mode === "scope") {
         const questions: TaskQuestion[] = draft.questions.map(({ question, options }: { question: string; options: string[] }) => [question, ...options]);
         const nextFlow = preserveNodes ? flow : makeTaskFlow(draft.nodes);
@@ -149,7 +168,42 @@ export function TaskPipelinePage() {
     }
   }
 
+  async function launchArena() {
+    if (launching || !runNames.length) return;
+    setLaunching(true);
+    setLaunchError("");
+    try {
+      const repetitions = Number.parseInt(String(benchmarkPlan.repetitions ?? ""), 10);
+      const threshold = acceptanceRule.minimumPercent / 100;
+      const taskData = {
+        objective,
+        frameworks: runNames.map((name) => FRAMEWORK_IDS[name]).filter(Boolean),
+        taskFlow,
+        scope,
+        scopeInstruction,
+        benchmarkPlan,
+        successCriteria,
+        acceptanceRule,
+        repetitions: Number.isFinite(repetitions) && repetitions > 0 ? repetitions : 1,
+        threshold: Number.isFinite(threshold) && threshold > 0 ? threshold : 0.9,
+      };
+      const project = await post<{ id: string }>("/v1/projects", { name: objective.trim().slice(0, 80) || "Görev" });
+      const spec = await post<{ id: string; spec_hash: string }>(`/v1/projects/${project.id}/specs`, { task_data: taskData });
+      await post(`/v1/specs/${spec.id}/approve?expected_hash=${encodeURIComponent(spec.spec_hash)}`);
+      const experiment = await post<{ id: string }>("/v1/experiments", { spec_id: spec.id });
+      await post(`/v1/experiments/${experiment.id}/build`);
+      await post(`/v1/experiments/${experiment.id}/run`);
+      rememberExperiment(experiment.id);
+      navigate("/execution-arena", { state: { experimentId: experiment.id } });
+    } catch (error) {
+      setLaunchError(error instanceof ApiError ? error.message : "Deney başlatılamadı.");
+    } finally {
+      setLaunching(false);
+    }
+  }
+
   function loadDemoTask() {
+    setBuiltInNotice(false);
     setObjective(SAMPLE_OBJECTIVES[0]!);
     const demoFlow = makeTaskFlow(["input:Sözleşmeleri al", "llm:Tarih ve bütçe bilgilerini çıkar", "validate:Çelişkileri doğrula", "output:Kanıtlı rapor oluştur"]);
     demoFlow.edges.push({ from: demoFlow.blocks[2]!.id, to: demoFlow.blocks[1]!.id, kind: "feedback" });
@@ -197,6 +251,7 @@ export function TaskPipelinePage() {
       </nav>
 
       {generationError && <p role="alert">{generationError}</p>}
+      {builtInNotice && <p role="status" style={{ color: THEME.amber }}>AI sağlayıcısı yapılandırılmadığı için yerleşik akış ve soru şablonu kullanıldı. Akışı ve yanıtları düzenleyebilirsiniz.</p>}
       {generating && <p role="status">AI taslağı hazırlanıyor…</p>}
 
       {step === "prompt" && (
@@ -296,6 +351,26 @@ ${JSON.stringify(runConfig, null, 2).split("\n").map((line) => `        ${JSON.s
             disabled={generating}
           />
           <SuccessTestFlow criteria={successCriteria} benchmark={benchmarkPlan} />
+          <fieldset style={{ border: "none", padding: 0, margin: "16px 0 0" }}>
+            <legend className="arena-card-title">Çalıştırılacak framework'ler ({runNames.length}/{FRAMEWORKS_DATA.length})</legend>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {FRAMEWORKS_DATA.map(({ name }) => {
+                const on = runNames.includes(name);
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    aria-pressed={on}
+                    disabled={launching}
+                    className={`arena-btn ${on ? "arena-btn-primary" : ""}`}
+                    onClick={() => setRunNames((prev) => (on ? prev.filter((n) => n !== name) : [...prev, name]))}
+                  >
+                    {name}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
           {benchmarkReady && (
             <div>
               <p>Kabul kuralı: {acceptanceRule.metric} ≥ %{acceptanceRule.minimumPercent}. {acceptanceRule.mandatoryFailure} görüldüğünde test başarısız sayılır.</p>
@@ -311,12 +386,13 @@ ${JSON.stringify(runConfig, null, 2).split("\n").map((line) => `        ${JSON.s
             <button
               type="button"
               className="arena-btn arena-btn-success"
-              disabled={generating || !benchmarkReady || approvedBenchmark !== benchmarkVersion}
-              onClick={() => navigate("/execution-arena", { state: { objective, framework: selectedFw, runConfig, successCriteria, benchmarkPlan, acceptanceRule } })}
+              disabled={generating || launching || !runNames.length || !benchmarkReady || approvedBenchmark !== benchmarkVersion}
+              onClick={() => void launchArena()}
             >
-              ▶ Arenayı Başlat
+              {launching ? "Başlatılıyor…" : "▶ Arenayı Başlat"}
             </button>
           </div>
+          {launchError && <p role="alert" style={{ color: THEME.red }}>{launchError}</p>}
         </section>
       )}
     </div>

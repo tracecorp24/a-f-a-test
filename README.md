@@ -72,6 +72,22 @@ docker compose up -d --build
 # Web UI: http://localhost:3000
 ```
 
+## Arayüzden kullanım (yerel)
+
+`run_system.bat` API'yi (8080) ve web arayüzünü (3000) başlatır. Tüm akış arayüzden yönetilir:
+
+1. **Görev Stüdyosu** — görevi tanımla, kapsamı netleştir, benchmark kriterlerini onayla, framework'leri seç ve **Arenayı Başlat**'a bas (proje → spec → onay → deney → build → run API çağrıları yapılır).
+2. **Çalıştırma Arenası** — her framework'ün işçisi (`runtimes/*/skeleton`) `WorkerProtocol` ile çalıştırılır; ilerleme, olaylar ve ajan telemetrisi canlı akar. Duraklat / sürdür / iptal / yeniden çalıştır buradan.
+3. **Karşılaştırma ve Öneri** — ağırlıklar ve kalite barajı değiştikçe sıralama API'den (`/rankings`) yeniden hesaplanır.
+4. **Dışa Aktarım** — seçilen adayın bağımsız, gizli anahtarsız paketi oluşturulur ve SHA-256 doğrulamasıyla indirilir.
+5. **Geliştirme Stüdyosu** — işçi kodu / manifest görüntülenir; *Doğrula* işçiyi sunucuda çalıştırır.
+
+Notlar:
+
+- Skorlar `benchmarks/fixtures/doc-review` etiketli verisine göre ölçülür (F1 hard gate + şema). Yerleşik işçiler model çağrısı yapmaz; bu yüzden token değerleri olay yüklerinden **tahmin** edilir ve arayüzde `~` ile gösterilir.
+- Durum `data/arena_state.json` dosyasında saklanır (`ARENA_STATE_FILE` ile değiştirilebilir). Çalışırken sunucu yeniden başlarsa o deney "başarısız" işaretlenir.
+- AI ile akış/soru üretimi için `ARENA_DESIGN_MODEL` ve `ARENA_DESIGN_API_KEY` tanımlayın (isteğe bağlı `ARENA_DESIGN_BASE_URL`). Tanımlı değilse yerleşik şablon kullanılır.
+
 ## Katkı
 
 Katkı kuralları için [CONTRIBUTING.md](CONTRIBUTING.md), güvenlik bildirimleri için [SECURITY.md](SECURITY.md) dosyasına bakın.
