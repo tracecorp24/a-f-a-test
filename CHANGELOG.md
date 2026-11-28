@@ -6,6 +6,20 @@ Biçim [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) standardına, s�
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-25
+
+### Changed
+
+- **Worker skeleton'ları gerçek LLM'e bağlandı:** 10 framework skeleton'ı (`runtimes/*/skeleton`) LLM adımlarını artık Model Gateway üzerinden gerçek provider'a yürütüyor; `ARENA_PROVIDER_API_KEY` tanımlı değilse deterministik MockProvider'a düşüyor.
+- **uv workspace düzeltmeleri:** uv workspace / lockfile hizalama düzeltmeleri (`uv.lock` dahil pyproject yapılandırması).
+- **Watchdog / cancel düzeltmeleri:** builder watchdog ve deney iptal akışındaki hatalar giderildi.
+
+### Added
+
+- **Kesin Token Telemetrisi (ADR-0006):** Token değerleri artık tahmin değil, kanonik Model Gateway usage ledger'ından gelir. Yeni `arena_gateway.runtime.ModelGateway` her fiziksel LLM isteğini provider-reported token sayısıyla ledger'a kaydeder; `WorkerProtocol.complete()` işçilerin LLM adımlarını bu gateway üzerinden yürütür ve `model.completion` olayıyla kesin kullanımı akışa yazar. 10 framework skeleton'ı gerçek gateway çağrısı yapacak şekilde güncellendi, `estimate_tokens` sezgisel tahmini kaldırıldı; aday `usage` kaydı artık `prompt_tokens` / `completion_tokens` / `requests` kırılımıyla `provider_reported` kaynağıyla raporlanır. UI etiketleri "tahmin" yerine ledger kaydını gösterir.
+- **tiktoken token sayımı:** Usage raporlamayan provider'lar için `arena_gateway.domain.token_counter` modülü eklendi; `chars/4` sezgisel tahmini yerine tiktoken `o200k_base` BPE encoding'i ile tel payload üzerinden türetilmiş token sayımı (tiktoken yoksa sezgisel tahmine yavaş geçiş).
+- **OpenCode transport:** `services/model_gateway/src/arena_gateway/adapters/opencode_provider.py`: OpenCode (ivmeX) sunucusunun one-shot generate uç noktası üzerinden HTTP Basic auth ile completion yönlendiren alternatif transport; `ARENA_PROVIDER_TRANSPORT=opencode` ile seçilir, `ARENA_PROVIDER_OPENCODE_USER` ve `ARENA_PROVIDER_OPENCODE_PROVIDER_ID` ile yapılandırılır.
+
 ### Added
 
 - **Tek Tıkla Başlatma Betiği (`run_system.bat`):** Windows ortamında tüm kernel, sözleşme, SDK ve servislerin `PYTHONPATH` konfigürasyonunu otomatik ayarlayan, FastAPI API sunucusunu (port 8080) ve Vite Web UI sunucusunu (port 3000) arka planda başlatan ve tarayıcıyı doğrudan `http://localhost:3000` adresine yönlendiren tek tıkla çalıştırma aracı.
@@ -22,5 +36,5 @@ Biçim [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) standardına, s�
 - **F2 Pilot Runtimes:** `packages/worker-sdk/python` (stdio JSONL taşıma protokolü), 10 framework'lük `registry/framework-catalog.yaml`, LangGraph ve Google ADK manifest ve skeleton pipeline'ları, worker conformance test suite'i.
 - **F3 Builder & Requirements:** `services/builder` (Clarifier motoru, prompt injection ve güvensiz kod engelleyici Security Watchdog, Coding Harness ve test-and-repair döngüsü).
 - **F4-F7 Telemetri, Değerlendirme, Öneri ve Hardening:** `services/telemetry` (idempotent event store), `services/evaluation` (hard gate değerlendirme motoru), `services/recommendation` (ADR-007 hard eligibility kapısı ve ağırlıklı öneri motoru), `services/artifact_exporter` (ADR-009 secret içermeyen bağımsız proje dışa aktarımı).
-- Teknik Geliştirme Planı ve faz faz İnşa Planı (`temp-dosyalar/`).
+- Teknik Geliştirme Planı ve faz faz İnşa Planı (`docs/plans/`).
 - Repo hijyen dosyaları: README, LICENSE, CONTRIBUTING, SECURITY, CHANGELOG, `.editorconfig`, `.gitattributes`, `.gitignore`.

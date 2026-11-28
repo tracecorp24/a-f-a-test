@@ -8,6 +8,7 @@ secrets/
 
 # --- Runtime data (user volumes, never committed) ---
 data/
+data/*.json
 !apps/web/src/data/
 apps/web/src/data/*
 !apps/web/src/data/mockData.ts
@@ -38,6 +39,7 @@ coverage.xml
 node_modules/
 .pnpm-store/
 *.tsbuildinfo
+package-lock.json
 .vite/
 .turbo/
 playwright-report/
@@ -46,6 +48,9 @@ test-results/
 # --- Generated artifacts ---
 runtimes/*/docs-index/
 sbom/
+
+# Lockfiles are committed (uv.lock, pnpm-lock.yaml); npm's package-lock.json
+# is excluded above because this repo is a pnpm workspace.
 
 # --- Editors & OS ---
 .idea/
@@ -56,3 +61,16 @@ sbom/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# --- Local agent tooling ---
+.taste-skill/
+docs/plans/taste-skill/
+
+# --- Working design prototypes (exploration only, not part of the product) ---
+design-agents/
+
+# --- Working reports (kept out of the repo, folder exists via .gitkeep) ---
+temp-dosyalar/*
+!temp-dosyalar/raporlar/
+temp-dosyalar/raporlar/*
+!temp-dosyalar/raporlar/.gitkeep

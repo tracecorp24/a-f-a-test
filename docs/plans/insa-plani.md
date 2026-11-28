@@ -280,7 +280,7 @@ agentic-arena/
 │   ├── adr/
 │   ├── getting-started/
 │   └── framework-guides/
-├── temp-dosyalar/                    (+) planlama dokümanları (bu dosya ve GP)
+├── docs/plans/                         planlama dokümanları (bu dosya ve GP)
 └── .github/
     ├── workflows/                    ci.yml, runtime-matrix.yml, release.yml, security.yml
     ├── ISSUE_TEMPLATE/               (+)

@@ -1,10 +1,10 @@
 # Katkı Rehberi
 
-Agentic Arena'ya katkı verdiğiniz için teşekkürler. Bu dosya kısa kuralları özetler; ayrıntılı mühendislik standartları [İnşa Planı §1](temp-dosyalar/insa-plani.md#1-mühendislik-ilkeleri-ve-standartlar) içindedir.
+Agentic Arena'ya katkı verdiğiniz için teşekkürler. Bu dosya kısa kuralları özetler; ayrıntılı mühendislik standartları [İnşa Planı §1](docs/plans/insa-plani.md#1-mühendislik-ilkeleri-ve-standartlar) içindedir.
 
 ## Başlamadan önce
 
-- Ürün kararları için [Teknik Geliştirme Planı](temp-dosyalar/gelistirme-plani.md), uygulama sırası için [İnşa Planı](temp-dosyalar/insa-plani.md) okunmalıdır.
+- Ürün kararları için [Teknik Geliştirme Planı](docs/plans/gelistirme-plani.md), uygulama sırası için [İnşa Planı](docs/plans/insa-plani.md) okunmalıdır.
 - Büyük bir değişiklikten önce bir issue açın ve ilgili faz (`phase:F*`) ile epic'i (`epic:E*`) belirtin.
 - Mimari bir seçim değişiyorsa `docs/adr/` altında yeni bir ADR önerin.
 

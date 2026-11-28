@@ -1,36 +1,131 @@
-# Agentic Arena
+# Agentic Framework Arena
 
 > **One task. One model. Ten frameworks. Measurable results.**
 
-Agentic Arena, kullanıcının kendi görevi için on agentic framework üzerinde bağımsız ve native pipeline'lar geliştiren, bunları aynı model ve eşit koşullarda çalıştıran, ölçen ve en uygun framework'ü kanıta dayalı olarak öneren açık kaynak bir platformdur.
+Agentic Framework Arena is an open-source platform that builds independent, native
+pipelines for *your own task* on ten agentic frameworks, runs them against the same
+model under equal conditions, measures the results, and recommends the best framework
+with evidence — not marketing.
 
-> [!NOTE]
-> Proje **planlama aşamasındadır.** Henüz çalışan bir ürün, yayımlanmış bir sürüm veya ölçülmüş benchmark sonucu yoktur. Aşağıdaki komutlar ve yapı, tasarlanan ürünü tanımlar.
+## How it works
 
-## Neden?
+1. The task is described in natural language (or imported); ambiguities are resolved
+   with clarifying questions and locked into an approved task spec.
+2. For each framework, an independent worker is generated using that framework's
+   native primitives, tested, and frozen.
+3. All candidates run with the same model, data, tools, and budget.
+4. Quality, latency, tokens, and reliability are measured; candidates that pass the
+   hard criteria are ranked with the user's weights.
+5. The winning pipeline is exported as a secret-free, platform-independent project.
 
-Framework seçimi genellikle dokümantasyona, popülerliğe veya başkalarının benchmark'larına göre yapılır. Oysa uygunluk, yapılacak işe ve kabul kriterlerine bağlıdır. Agentic Arena bu kararı kullanıcının kendi problemi üzerinde deneysel hale getirir:
+### Guiding rules
 
-1. Görev doğal dil, görsel akış veya mevcut proje importu ile tanımlanır; belirsizlikler sorularla netleştirilir ve kullanıcı onaylar.
-2. Her framework için o framework'ün doğal primitive'lerini kullanan bağımsız bir uygulama üretilir, test edilir ve dondurulur.
-3. Tüm adaylar aynı model, aynı veri, aynı araçlar ve eşit bütçeyle çalıştırılır.
-4. Kalite, hız, token ve güvenilirlik ölçülür; hard kriterleri geçen adaylar kullanıcının ağırlıklarıyla sıralanır.
-5. Seçilen pipeline, platformdan bağımsız çalışan bir proje olarak dışa aktarılır.
+- **Single repo** — upstream framework repos are not cloned into the workspace.
+- **One API key, one model** — planning, code generation, all pipelines, and
+  evaluation hit the same model; no hidden fallbacks.
+- **Native comparison only** — every framework solves the task with its own
+  orchestration primitives.
+- **No measurement, no claim** — missing or estimated metrics are labeled; a winner
+  is never declared without evidence.
 
-## Değişmez kurallar
+## Architecture
 
-- **Tek repo** — upstream framework repoları ayrı ayrı kurulmaz.
-- **Tek API anahtarı, tek model** — planlama, kod üretimi, tüm pipeline'lar ve değerlendirme aynı modele gider; gizli fallback yoktur.
-- **Yalnızca native karşılaştırma** — her framework kendi orkestrasyon primitive'leriyle çözüm üretir.
-- **Onaysız geliştirme yok** — gereksinimler kullanıcı onayıyla kilitlenir.
-- **Ölçülmeyen uydurulmaz** — eksik veya tahmini metrikler açıkça etiketlenir; yeterli kanıt yoksa kazanan ilan edilmez.
+```
+apps/            User-facing applications
+  api/           FastAPI control plane (experiments, runs, rankings, exports)
+  web/           React + Vite web UI (10 tabs: Task Studio → Comparison Lab → Export)
+  cli/           arena-cli command-line interface
+services/        Domain services (pure-Python packages, src layout)
+  experiment_controller/  Experiment lifecycle & orchestration
+  model_gateway/          Single-provider LLM gateway, budget, usage ledger
+  tool_broker/            Shared tool broker with ACL checks
+  builder/                Clarifier, security watchdog, coding harness
+  telemetry/              Idempotent event store
+  evaluation/             Hard-gate evaluation engine
+  recommendation/         Weighted, eligibility-gated ranking
+  artifact_exporter/      Secret-free standalone project export
+packages/        Shared libraries
+  kernel/                 arena_kernel: ULID, clock, errors, hashing, log redaction
+  contracts/              arena_contracts: schemas, usage records, protocol types
+  worker-sdk/             arena_worker_sdk: stdio JSONL WorkerProtocol
+  shared-tool-sdk/        arena_tool_sdk: ToolContract wrappers + ACL
+runtimes/        One worker skeleton per framework (10 total), each with a manifest
+registry/        framework-catalog.yaml (the 10-framework catalog)
+```
 
-## Framework kataloğu
+The control plane never imports framework code; framework code lives only under
+`runtimes/<id>/` and talks to the platform exclusively through `WorkerProtocol`.
 
-| Framework | Runtime | Native paradigma |
+## Quick start (Windows)
+
+```bat
+copy .env.example .env
+run_system.bat
+```
+
+`run_system.bat` loads `.env`, wires up `PYTHONPATH` for every local package,
+starts the API on `http://localhost:8080` and the web UI on
+`http://localhost:3000`, then opens the browser.
+
+Key environment variables (see [.env.example](.env.example) for the full list;
+put real values in your local `.env`, never in the repo):
+
+- `ARENA_PROVIDER_API_KEY` — benchmark model credential. When set, workers call the
+  real model; when empty they run against the deterministic offline mock.
+- `ARENA_PROVIDER_TRANSPORT` — `openai` (default) or `opencode`.
+- `ARENA_MODEL_ID` — the single model all pipelines share (e.g. `gpt-4o-mini`).
+- `ARENA_DESIGN_API_KEY` / `ARENA_DESIGN_MODEL` — optional key for AI-assisted task
+  design; falls back to built-in templates when unset.
+- `ARENA_STATE_FILE` — control-plane state file (default `./data/arena_state.json`).
+
+### Docker Compose alternative
+
+```bash
+docker compose --profile core up -d --build
+# API: http://localhost:8000 - Web UI: http://localhost:3000
+```
+
+This starts PostgreSQL, the API, the web UI, and an OTel collector. The sandbox
+network has zero internet egress (ADR-004).
+
+## Model gateway: transports & token counting
+
+- **OpenAI transport (default):** an OpenAI-compatible `/chat/completions` endpoint.
+  Configure with `ARENA_PROVIDER_BASE_URL` and `ARENA_MODEL_ID`.
+- **OpenCode transport:** when the platform credential lives inside an
+  [OpenCode](https://opencode.ai) server instead of being handed to the arena,
+  set `ARENA_PROVIDER_TRANSPORT=opencode` to route completions through the
+  server's one-shot generate endpoint with HTTP Basic auth (the API key is the
+  server password; optional extras: `ARENA_PROVIDER_OPENCODE_USER`,
+  `ARENA_PROVIDER_OPENCODE_PROVIDER_ID`).
+- **Exact token usage (ADR-0006):** the canonical usage ledger in the model gateway
+  records provider-reported tokens for every physical LLM call — no estimates.
+  When a provider does not report usage, tokens are *derived* with
+  [tiktoken](https://github.com/openai/tiktoken) (`o200k_base` BPE encoding)
+  over the exact wire payload, degrading to a heuristic only if tiktoken is
+  unavailable.
+
+## Running tests
+
+PowerShell:
+
+```powershell
+$env:PYTHONPATH = "packages\kernel\src;packages\contracts\python\src;packages\worker-sdk\python\src;packages\shared-tool-sdk\src;services\experiment_controller\src;services\model_gateway\src;services\tool_broker\src;services\builder\src;services\telemetry\src;services\evaluation\src;services\recommendation\src;services\artifact_exporter\src;apps\api\src;apps\cli\src"
+python -m pytest tests packages services apps -q
+```
+
+The `PYTHONPATH` is required because the packages use a `src` layout without a
+single editable root install. `run_system.bat` sets the same value for you.
+
+Other useful commands: `make lint` (ruff + mypy), `make format`, `make contracts`
+(regenerate Python/TS contracts from JSON Schema).
+
+## Framework catalog
+
+| Framework | Runtime | Native paradigm |
 |---|---|---|
 | [LangGraph](https://github.com/langchain-ai/langgraph) | Python | State / graph |
-| [Google ADK](https://github.com/google/adk-python) | Python | Hiyerarşik ajanlar / workflow |
+| [Google ADK](https://github.com/google/adk-python) | Python | Hierarchical agents / workflow |
 | [Microsoft Agent Framework](https://github.com/microsoft/agent-framework) | Python | Agent / executor / workflow |
 | [OpenAI Agents SDK](https://github.com/openai/openai-agents-python) | Python | Agent loop / handoff |
 | [CrewAI](https://github.com/crewAIInc/crewAI) | Python | Crew / role / task / flow |
@@ -40,58 +135,33 @@ Framework seçimi genellikle dokümantasyona, popülerliğe veya başkalarının
 | [Smolagents](https://github.com/huggingface/smolagents) | Python | Code / tool-calling agent |
 | [Mastra](https://github.com/mastra-ai/mastra) | TypeScript | Agent / workflow |
 
-## Planlama dokümanları
+## Project documentation
 
-| Doküman | İçerik |
+| Document | Contents |
 |---|---|
-| [Teknik Geliştirme Planı](temp-dosyalar/gelistirme-plani.md) | Ürün gereksinimleri, sistem mimarisi, veri modeli, API, telemetri, değerlendirme ve kabul testleri — **ne ve neden** |
-| [İnşa Planı](temp-dosyalar/insa-plani.md) | Faz faz uygulama sırası, iş paketleri, mühendislik standartları, CI/CD ve izlenebilirlik — **nasıl ve hangi sırayla** |
+| [Technical Development Plan](docs/plans/gelistirme-plani.md) | Product requirements, architecture, data model, API, telemetry, evaluation, acceptance tests — *what and why* |
+| [Build Plan](docs/plans/insa-plani.md) | Phase-by-phase implementation order, work packages, engineering standards, CI/CD — *how and in which order* |
+| [Live Test Report](docs/plans/canli-test-raporu.md) | Notes from a live end-to-end run |
 
-## Yol haritası
+## Roadmap
 
-| Faz | Ad | Hedef sürüm |
+| Phase | Name | Target |
 |---|---|---|
-| F0 | Foundation — repo, sözleşmeler, CI | `v0.1.0` |
-| F1 | Single Model Core — gateway, bütçe, usage ledger | `v0.2.0` |
-| F2 | Pilot runtime'lar — LangGraph + Google ADK | `v0.3.0` |
-| F3 | Builder ve gereksinimler | `v0.4.0` |
-| F4 | Telemetri, değerlendirme ve öneri | `v0.5.0` |
-| F5 | Beş runtime alpha | `v0.6.0` |
-| F6 | On runtime beta | `v0.7.0` |
-| F7 | Release hardening — ilk tamamlanmış sürüm | `v1.0.0` |
-| F8 | Eklentiler | `v1.1.0` |
+| F0 | Foundation — repo, contracts, CI | `v0.1.0` |
+| F1 | Single Model Core — gateway, budget, usage ledger | `v0.2.0` |
+| F2 | Pilot runtimes — LangGraph + Google ADK | `v0.3.0` |
+| F3 | Builder & requirements | `v0.4.0` |
+| F4 | Telemetry, evaluation & recommendation | `v0.5.0` |
+| F5 | Five-runtime alpha | `v0.6.0` |
+| F6 | Ten-runtime beta | `v0.7.0` |
+| F7 | Release hardening — first complete release | `v1.0.0` |
+| F8 | Plugins | `v1.1.0` |
 
-Ayrıntılar için [İnşa Planı §3](temp-dosyalar/insa-plani.md#3-faz-haritası).
+## Contributing
 
-## Planlanan kurulum
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution rules and
+[SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 
-```bash
-git clone https://github.com/<owner>/agentic-arena.git
-cd agentic-arena
-docker compose up -d --build
-# Web UI: http://localhost:3000
-```
-
-## Arayüzden kullanım (yerel)
-
-`run_system.bat` API'yi (8080) ve web arayüzünü (3000) başlatır. Tüm akış arayüzden yönetilir:
-
-1. **Görev Stüdyosu** — görevi tanımla, kapsamı netleştir, benchmark kriterlerini onayla, framework'leri seç ve **Arenayı Başlat**'a bas (proje → spec → onay → deney → build → run API çağrıları yapılır).
-2. **Çalıştırma Arenası** — her framework'ün işçisi (`runtimes/*/skeleton`) `WorkerProtocol` ile çalıştırılır; ilerleme, olaylar ve ajan telemetrisi canlı akar. Duraklat / sürdür / iptal / yeniden çalıştır buradan.
-3. **Karşılaştırma ve Öneri** — ağırlıklar ve kalite barajı değiştikçe sıralama API'den (`/rankings`) yeniden hesaplanır.
-4. **Dışa Aktarım** — seçilen adayın bağımsız, gizli anahtarsız paketi oluşturulur ve SHA-256 doğrulamasıyla indirilir.
-5. **Geliştirme Stüdyosu** — işçi kodu / manifest görüntülenir; *Doğrula* işçiyi sunucuda çalıştırır.
-
-Notlar:
-
-- Skorlar `benchmarks/fixtures/doc-review` etiketli verisine göre ölçülür (F1 hard gate + şema). Yerleşik işçiler model çağrısı yapmaz; bu yüzden token değerleri olay yüklerinden **tahmin** edilir ve arayüzde `~` ile gösterilir.
-- Durum `data/arena_state.json` dosyasında saklanır (`ARENA_STATE_FILE` ile değiştirilebilir). Çalışırken sunucu yeniden başlarsa o deney "başarısız" işaretlenir.
-- AI ile akış/soru üretimi için `ARENA_DESIGN_MODEL` ve `ARENA_DESIGN_API_KEY` tanımlayın (isteğe bağlı `ARENA_DESIGN_BASE_URL`). Tanımlı değilse yerleşik şablon kullanılır.
-
-## Katkı
-
-Katkı kuralları için [CONTRIBUTING.md](CONTRIBUTING.md), güvenlik bildirimleri için [SECURITY.md](SECURITY.md) dosyasına bakın.
-
-## Lisans
+## License
 
 [MIT](LICENSE)
