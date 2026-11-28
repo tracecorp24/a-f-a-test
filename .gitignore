@@ -66,6 +66,9 @@ desktop.ini
 .taste-skill/
 docs/plans/taste-skill/
 
+# --- Local asset bundles (uploaded via GitHub settings, not tracked) ---
+images/
+
 # --- Working design prototypes (exploration only, not part of the product) ---
 design-agents/
 
