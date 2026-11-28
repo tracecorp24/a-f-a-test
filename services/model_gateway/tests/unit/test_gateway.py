@@ -7,6 +7,7 @@ from arena_gateway.domain.budget import TokenBudgetManager
 from arena_gateway.domain.policy import PolicyEngine
 from arena_gateway.domain.secret_store import SecretStore
 from arena_gateway.domain.usage_ledger import UsageLedger
+from arena_gateway.runtime import ModelGateway
 from arena_kernel.errors import BudgetExceededError, ModelOverrideDeniedError
 
 
@@ -86,3 +87,35 @@ async def test_usage_ledger_and_mock_provider_ac12() -> None:
     # Total tokens is strictly prompt + completion, no double count of reasoning
     assert totals["total_tokens"] == totals["prompt_tokens"] + totals["completion_tokens"]
     assert totals["reasoning_tokens"] == 15  # 5 per call
+    assert totals["usage_source"] == "provider_reported"
+
+
+def test_model_gateway_records_exact_usage(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Workers get exact, provider-reported usage from the gateway ledger (ADR-0006)."""
+    monkeypatch.delenv("ARENA_PROVIDER_API_KEY", raising=False)
+    gateway = ModelGateway()
+
+    first = gateway.complete(
+        run_id="run_gateway_exact",
+        candidate_id="can_gateway",
+        phase="benchmark",
+        step="analyze_conflicts",
+        payload={"documents": ["Teslim 15 Ocak 2027. Bütçe 100.000 USD."]},
+    )
+    gateway.complete(
+        run_id="run_gateway_exact",
+        candidate_id="can_gateway",
+        phase="benchmark",
+        step="generate_report",
+        payload={"documents": ["Teslim 15 Ocak 2027. Bütçe 100.000 USD."], "conflicts": []},
+    )
+
+    totals = gateway.run_usage("run_gateway_exact")
+    assert totals["requests_count"] == 2
+    assert totals["usage_source"] == "provider_reported"
+    assert totals["total_tokens"] == totals["prompt_tokens"] + totals["completion_tokens"]
+    assert totals["total_tokens"] > 0
+    assert first["usage"]["total_tokens"] == first["usage"]["prompt_tokens"] + first["usage"]["completion_tokens"]
+    # a run with no physical requests must not invent tokens
+    assert gateway.run_usage("run_unknown")["total_tokens"] == 0
+    assert gateway.run_usage("run_unknown")["usage_source"] == "unknown"

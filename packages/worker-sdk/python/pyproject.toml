@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "arena-worker-sdk"
 version = "0.1.0"
 description = "Agentic Arena Worker SDK for Python Runtimes"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arena-kernel",

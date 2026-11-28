@@ -11,9 +11,12 @@ import hashlib
 import importlib.util
 import json
 import math
+import os
 import re
 import threading
 import time
+from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -22,6 +25,7 @@ import yaml
 
 from arena_contracts import ArenaEvent, CriterionPolicy, RunSpec
 from arena_evaluation.domain.evaluator import EvaluationEngine
+from arena_gateway.runtime import get_gateway
 from arena_kernel.ids import generate_id
 from arena_worker_sdk.protocol import WorkerProtocol
 
@@ -53,12 +57,34 @@ class RunCancelled(Exception):
     """Raised inside a worker when the experiment was cancelled."""
 
 
-class CapturingProtocol(WorkerProtocol):
-    """WorkerProtocol that keeps the JSONL events in memory instead of writing to stdout."""
+class RunLimitExceeded(Exception):
+    """Raised inside a worker when it exceeded a RunSpec budget (max_calls)."""
 
-    def __init__(self, spec: RunSpec, sink: Callable[[ArenaEvent], None]) -> None:
+
+class CapturingProtocol(WorkerProtocol):
+    """WorkerProtocol that keeps the JSONL events in memory instead of writing to stdout.
+
+    The experiment-level ``cancel_flag`` (threading.Event) is wired in so a running
+    worker observes cancellation at every event / model-call boundary. RunSpec
+    budgets (``max_calls``) are enforced here too (ADR-0005 watchdog contract).
+    """
+
+    def __init__(
+        self,
+        spec: RunSpec,
+        sink: Callable[[ArenaEvent], None],
+        cancel_flag: threading.Event | None = None,
+    ) -> None:
         super().__init__(spec)
         self._sink = sink
+        self._cancel_flag = cancel_flag
+        self._model_calls = 0
+
+    @property
+    def is_cancelled(self) -> bool:
+        if self._cancel_flag is not None and self._cancel_flag.is_set():
+            return True
+        return self._is_cancelled
 
     def emit_event(self, event_type: str, payload: dict[str, Any]) -> ArenaEvent:
         if self.is_cancelled:
@@ -77,6 +103,22 @@ class CapturingProtocol(WorkerProtocol):
         )
         self._sink(event)
         return event
+
+    def complete(
+        self,
+        step: str,
+        payload: dict[str, Any],
+        *,
+        agent: str | None = None,
+        system: str | None = None,
+        max_tokens: int = 4096,
+    ) -> dict[str, Any]:
+        if self.is_cancelled:
+            raise RunCancelled()
+        self._model_calls += 1
+        if self._model_calls > self.spec.max_calls:
+            raise RunLimitExceeded(f"max_calls={self.spec.max_calls} exceeded at step '{step}'")
+        return super().complete(step, payload, agent=agent, system=system, max_tokens=max_tokens)
 
 
 # --------------------------------------------------------------------------- manifests / sources
@@ -116,6 +158,24 @@ class WorkerProtocol:
     def emit_event(self, event_type: str, payload: dict[str, Any]) -> None:
         self._seq += 1
         print(json.dumps({"seq": self._seq, "type": event_type, "payload": payload}), file=sys.stderr)
+
+    def complete(self, step: str, payload: dict[str, Any], *, agent: str | None = None, system: str | None = None, max_tokens: int = 4096) -> dict[str, Any]:
+        """Offline stand-in: exported workers run without the platform Model Gateway."""
+        self._seq += 1
+        print(json.dumps({"seq": self._seq, "type": "model.offline", "payload": {"step": step}}), file=sys.stderr)
+        return {
+            "model": "offline",
+            "content": "",
+            "request_id": None,
+            "usage": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "reasoning_tokens": None,
+                "cached_prompt_tokens": None,
+                "usage_source": "unsupported",
+            },
+        }
 
 
 '''
@@ -239,13 +299,6 @@ def score_output(output: Any, labeled: int, threshold: float) -> dict[str, Any]:
     }
 
 
-def estimate_tokens(events: list[dict[str, Any]], output: Any) -> int:
-    """Workers make no model calls here, so usage is *estimated* from exchanged payload size."""
-    chars = sum(len(json.dumps(e["payload"], ensure_ascii=False)) + len(e["type"]) for e in events)
-    chars += len(json.dumps(output, ensure_ascii=False, default=str))
-    return max(1, math.ceil(chars / 4))
-
-
 # --------------------------------------------------------------------------- telemetry
 
 
@@ -258,34 +311,65 @@ def _actor(event_type: str, payload: dict[str, Any]) -> str | None:
 
 
 def build_telemetry(events: list[dict[str, Any]]) -> dict[str, Any]:
-    """Derive agent graph (nodes, directed links with message/token/handoff counts) from events."""
+    """Derive agent graph (nodes, directed links with message/token/handoff counts) from events.
+
+    ``model.completion`` events carry the exact provider-reported token usage from the
+    gateway ledger (ADR-0006) and contribute to ``exact_tokens``. Every other event
+    contributes its payload volume, counted with the tiktoken BPE tokenizer (never a
+    chars/4 heuristic); those counts are reported separately as ``derived_tokens`` so
+    exact LLM consumption and derived payload volume are never conflated.
+    """
     agents: list[str] = []
     links: dict[tuple[str, str], dict[str, int]] = {}
     previous: str | None = None
     for event in events:
         payload = event["payload"]
-        if "handoff" in event["type"] and isinstance(payload.get("from"), str) and isinstance(payload.get("to"), str):
+        exact = False
+        if event["type"] == "model.completion":
+            actor = payload.get("agent") or payload.get("step")
+            if not isinstance(actor, str):
+                continue
+            source, target, handoff = previous or actor, actor, 0
+            tokens = int(payload.get("total_tokens") or 0)
+            exact = True
+        elif "handoff" in event["type"] and isinstance(payload.get("from"), str) and isinstance(payload.get("to"), str):
             source, target = payload["from"], payload["to"]
             handoff = 1
+            tokens = count_tokens(json.dumps(payload, ensure_ascii=False, sort_keys=True))
         else:
             actor = _actor(event["type"], payload)
             if actor is None:
                 continue
             source, target, handoff = previous or actor, actor, 0
-        tokens = max(1, math.ceil(len(json.dumps(payload, ensure_ascii=False)) / 4))
+            tokens = count_tokens(json.dumps(payload, ensure_ascii=False, sort_keys=True))
         for name in (source, target):
             if name not in agents:
                 agents.append(name)
         if source != target:
-            link = links.setdefault((source, target), {"messages": 0, "tokens": 0, "handoffs": 0})
+            link = links.setdefault(
+                (source, target),
+                {"messages": 0, "tokens": 0, "handoffs": 0, "exact_tokens": 0, "derived_tokens": 0},
+            )
             link["messages"] += 1
             link["tokens"] += tokens
             link["handoffs"] += handoff
+            if exact:
+                link["exact_tokens"] += tokens
+            else:
+                link["derived_tokens"] += tokens
         previous = target
     return {
         "agents": agents,
         "links": [
-            {"from": a, "to": b, "messages": v["messages"], "tokens": v["tokens"], "handoffs": v["handoffs"]}
+            {
+                "from": a,
+                "to": b,
+                "messages": v["messages"],
+                "tokens": v["tokens"],
+                "handoffs": v["handoffs"],
+                "exact_tokens": v["exact_tokens"],
+                "derived_tokens": v["derived_tokens"],
+            }
             for (a, b), v in links.items()
         ],
     }
@@ -302,7 +386,14 @@ def run_worker(
     on_event: Callable[[dict[str, Any]], None] | None = None,
     cancel_flag: threading.Event | None = None,
 ) -> dict[str, Any]:
-    """Run one repetition of a framework worker and return measurements."""
+    """Run one repetition of a framework worker and return measurements.
+
+    The worker entrypoint executes in a dedicated thread and is subject to the
+    RunSpec ``watchdog_seconds`` deadline (ADR-0005): a hung worker fails its
+    repetition instead of blocking the experiment forever. Cancellation is
+    observed by the worker protocol itself, so runs abort at the next event or
+    model-call boundary.
+    """
     module, entry = _load_module(framework_id)
     spec = RunSpec(
         run_id=generate_id("run"),
@@ -310,8 +401,8 @@ def run_worker(
         experiment_id=experiment_id,
         input_ref=fixture_state()["public_input"],
         repetition=repetition,
-        gateway_base_url="http://127.0.0.1:8000/v1",
-        tool_broker_url="http://127.0.0.1:8001/v1",
+        gateway_base_url=os.getenv("ARENA_GATEWAY_BASE_URL", "http://127.0.0.1:8000/v1"),
+        tool_broker_url=os.getenv("ARENA_TOOL_BROKER_URL", "http://127.0.0.1:8001/v1"),
         max_tokens=100000,
         max_calls=40,
         watchdog_seconds=600,
@@ -324,20 +415,37 @@ def run_worker(
         if on_event:
             on_event(record)
 
-    protocol = CapturingProtocol(spec, sink)
+    protocol = CapturingProtocol(spec, sink, cancel_flag=cancel_flag)
     started = time.perf_counter()
     error: str | None = None
     output: Any = None
-    try:
-        if cancel_flag is not None and cancel_flag.is_set():
-            raise RunCancelled()
-        output = getattr(module, entry)(spec, protocol)
-    except RunCancelled:
+    if cancel_flag is not None and cancel_flag.is_set():
         error = "cancelled"
-    except Exception as exc:  # worker failure is a measured outcome, not an API crash
-        error = f"{type(exc).__name__}: {exc}"
+    else:
+        pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix=f"worker-{framework_id}")
+        try:
+            future: Future[Any] = pool.submit(getattr(module, entry), spec, protocol)
+            output = future.result(timeout=spec.watchdog_seconds)
+        except FutureTimeoutError:
+            error = f"watchdog timeout after {spec.watchdog_seconds}s"
+            # Python threads cannot be killed: signal cooperative cancellation so the
+            # leaked worker stops issuing LLM calls / emitting events at its next
+            # protocol boundary instead of burning tokens behind a dead run (report 03 §2.1).
+            protocol.cancel()
+            if cancel_flag is not None:
+                cancel_flag.set()
+        except RunCancelled:
+            error = "cancelled"
+        except RunLimitExceeded as exc:
+            error = f"budget exceeded: {exc}"
+        except Exception as exc:  # worker failure is a measured outcome, not an API crash
+            error = f"{type(exc).__name__}: {exc}"
+        finally:
+            pool.shutdown(wait=False)
     duration_ms = (time.perf_counter() - started) * 1000
-    return {"output": output, "events": events, "error": error, "duration_ms": duration_ms}
+    # Exact token usage for this run, straight from the canonical gateway ledger (ADR-0006).
+    usage = get_gateway().run_usage(spec.run_id)
+    return {"output": output, "events": events, "error": error, "duration_ms": duration_ms, "usage": usage}
 
 
 def smoke_test(framework_id: str) -> dict[str, Any]:

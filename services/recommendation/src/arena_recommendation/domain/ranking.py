@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Any
 
+from arena_kernel.errors import ArenaError
+
 
 @dataclass
 class CandidateBenchmarkData:
@@ -25,7 +27,23 @@ class RankingEngine:
     ) -> dict[str, Any]:
         """Rank candidates. Candidates failing hard gates cannot win."""
         w = weights or {"quality": 40.0, "speed": 25.0, "token": 20.0, "reliability": 15.0}
+        # Semantic validation (report 03 §4.1): all-zero weights used to crash with
+        # ZeroDivisionError -> raw 500; negative weights silently distorted scores;
+        # unknown keys inflated the denominator while never contributing to scores.
+        w = {key: float(w[key]) for key in ("quality", "speed", "token", "reliability") if key in w}
+        if any(v < 0 for v in w.values()):
+            raise ArenaError(
+                code="RANKING_WEIGHTS_INVALID",
+                message="Ağırlıklar negatif olamaz.",
+                details={"weights": weights},
+            )
         total_w = sum(w.values())
+        if total_w <= 0:
+            raise ArenaError(
+                code="RANKING_WEIGHTS_INVALID",
+                message="Ağırlık toplamı sıfır olamaz: en az bir ağırlık pozitif olmalı.",
+                details={"weights": weights},
+            )
 
         # Step 1: Eligibility check (ADR-007)
         eligible = [c for c in candidates if c.is_eligible]

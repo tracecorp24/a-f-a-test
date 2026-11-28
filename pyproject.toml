@@ -16,7 +16,6 @@ members = [
     "packages/kernel",
     "packages/worker-sdk/python",
     "packages/shared-tool-sdk",
-    "services/task_studio",
     "services/experiment_controller",
     "services/model_gateway",
     "services/tool_broker",
@@ -27,6 +26,22 @@ members = [
     "apps/api",
     "apps/cli",
 ]
+
+# Resolve intra-workspace dependencies against the monorepo instead of PyPI.
+[tool.uv.sources]
+arena-kernel = { workspace = true }
+arena-contracts = { workspace = true }
+arena-worker-sdk = { workspace = true }
+arena-shared-tool-sdk = { workspace = true }
+arena-controller = { workspace = true }
+arena-gateway = { workspace = true }
+arena-tool-broker = { workspace = true }
+arena-telemetry = { workspace = true }
+arena-evaluation = { workspace = true }
+arena-recommendation = { workspace = true }
+arena-artifact-exporter = { workspace = true }
+arena-api = { workspace = true }
+arena-cli = { workspace = true }
 
 [tool.ruff]
 target-version = "py312"

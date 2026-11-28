@@ -5,7 +5,10 @@ import time
 from typing import Any, AsyncIterator
 import httpx
 from arena_contracts import CapabilityStatus, UsageRecord, UsageSource
+from arena_gateway.domain.token_counter import count_tokens
 from arena_kernel.errors import ArenaError
+
+_PROBE_CAPABILITIES = ("tool_calling", "streaming", "structured_output", "usage_reporting")
 
 
 class LiveProviderAdapter:
@@ -24,13 +27,25 @@ class LiveProviderAdapter:
         self.timeout = timeout_seconds
 
     async def probe(self) -> dict[str, CapabilityStatus]:
-        """Probe model capabilities and endpoints."""
-        return {
-            "tool_calling": CapabilityStatus.VERIFIED,
-            "streaming": CapabilityStatus.VERIFIED,
-            "structured_output": CapabilityStatus.VERIFIED,
-            "usage_reporting": CapabilityStatus.VERIFIED,
-        }
+        """Probe the provider endpoint honestly (ADR-0005: no unverified claims).
+
+        Reachability is verified with a lightweight ``GET /models`` request; the
+        per-feature capabilities stay ``PENDING_PROVIDER_PROBE`` until an actual
+        feature is exercised during a run.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(
+                    f"{self.base_url}/models",
+                    headers={"Authorization": f"Bearer {self._api_key}"},
+                )
+        except httpx.RequestError:
+            return {key: CapabilityStatus.PENDING_PROVIDER_PROBE for key in _PROBE_CAPABILITIES}
+        if response.status_code != 200:
+            return {key: CapabilityStatus.PENDING_PROVIDER_PROBE for key in _PROBE_CAPABILITIES}
+        # Endpoint reachable: model listing works, per-feature claims remain unverified
+        # until the first real completion exercises them.
+        return {key: CapabilityStatus.PENDING_PROVIDER_PROBE for key in _PROBE_CAPABILITIES}
 
     async def complete(
         self,
@@ -79,15 +94,25 @@ class LiveProviderAdapter:
         latency_ms = (time.monotonic() - start_time) * 1000
 
         raw_usage = data.get("usage", {})
-        prompt_tokens = raw_usage.get("prompt_tokens", 0)
-        completion_tokens = raw_usage.get("completion_tokens", 0)
+        prompt_text = "".join(str(m.get("content", "")) for m in messages)
+        completion_text = str(((data.get("choices") or [{}])[0].get("message") or {}).get("content", ""))
+        if "prompt_tokens" in raw_usage:
+            prompt_tokens = int(raw_usage.get("prompt_tokens", 0))
+            completion_tokens = int(raw_usage.get("completion_tokens", 0))
+            usage_source = UsageSource.PROVIDER_REPORTED
+        else:
+            # Provider did not report usage: derive counts with the open-source
+            # tiktoken BPE tokenizer instead of reporting zeros.
+            prompt_tokens = count_tokens(prompt_text)
+            completion_tokens = count_tokens(completion_text)
+            usage_source = UsageSource.DERIVED
         total_tokens = prompt_tokens + completion_tokens  # Strict no double count
 
         usage = UsageRecord(
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             total_tokens=total_tokens,
-            usage_source=UsageSource.PROVIDER_REPORTED if "prompt_tokens" in raw_usage else UsageSource.ESTIMATED,
+            usage_source=usage_source,
         )
 
         return {

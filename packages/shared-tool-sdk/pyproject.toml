@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "arena-shared-tool-sdk"
 version = "0.1.0"
 description = "Agentic Arena Shared Tool SDK for mapping ToolContract to native framework tools"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arena-kernel",

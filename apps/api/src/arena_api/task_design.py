@@ -1,13 +1,12 @@
 """Generate task design drafts using the configured model provider."""
 
 import json
-import os
 from typing import Literal
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, ValidationError
 
-from arena_gateway.adapters.litellm_provider import LiveProviderAdapter
+from arena_gateway.factory import build_provider
 from arena_kernel.errors import ArenaError
 
 router = APIRouter(prefix="/v1/task-design")
@@ -52,16 +51,9 @@ class DesignDraft(BaseModel):
 
 @router.post("", response_model=DesignDraft)
 async def generate_design(req: DesignRequest) -> DesignDraft:
-    model = os.getenv("ARENA_DESIGN_MODEL")
-    key = os.getenv("ARENA_DESIGN_API_KEY")
-    if not model or not key:
+    provider = build_provider("ARENA_DESIGN")
+    if provider is None:
         raise HTTPException(status_code=503, detail="Görev tasarımı için AI sağlayıcısı yapılandırılmamış.")
-
-    provider = LiveProviderAdapter(
-        base_url=os.getenv("ARENA_DESIGN_BASE_URL", "https://api.openai.com/v1"),
-        api_key=key,
-        model_id=model,
-    )
     system_prompt = (
         "You design workflows and acceptance benchmarks. Respond in Turkish with only JSON. "
         'Use {"nodes":["short step label", "..."],"questions":[{"question":"...",'

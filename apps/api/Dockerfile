@@ -19,10 +19,11 @@ RUN pip install --no-cache-dir \
     httpx \
     pyyaml \
     structlog \
+    tiktoken \
     sqlalchemy \
     psycopg[binary]
 
-ENV PYTHONPATH="/app/packages/kernel/src:/app/packages/contracts/python/src:/app/services/experiment_controller/src:/app/services/model_gateway/src:/app/services/builder/src:/app/services/evaluation/src:/app/services/recommendation/src:/app/services/artifact_exporter/src:/app/apps/api/src"
+ENV PYTHONPATH="/app/packages/kernel/src:/app/packages/contracts/python/src:/app/packages/worker-sdk/python/src:/app/packages/shared-tool-sdk/src:/app/services/experiment_controller/src:/app/services/model_gateway/src:/app/services/builder/src:/app/services/evaluation/src:/app/services/recommendation/src:/app/services/artifact_exporter/src:/app/apps/api/src"
 
 EXPOSE 8000
 

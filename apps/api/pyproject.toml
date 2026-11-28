@@ -6,13 +6,17 @@ build-backend = "hatchling.build"
 name = "arena-api"
 version = "0.1.0"
 description = "Agentic Arena Control Plane API"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arena-kernel",
     "arena-contracts",
-    "arena-controller",
+    "arena-worker-sdk",
+    "arena-evaluation",
+    "arena-recommendation",
+    "arena-artifact-exporter",
     "arena-gateway",
+    "pydantic>=2.10.0",
+    "pyyaml>=6.0.0",
     "fastapi>=0.115.0",
     "uvicorn>=0.32.0",
     "sqlalchemy>=2.0.0",

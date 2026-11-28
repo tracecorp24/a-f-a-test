@@ -1,8 +1,30 @@
 """Mock Provider Adapter for deterministic testing without external API calls (F1.5, GP §18.4)."""
 
-from typing import Any, AsyncIterator
+import json
+import re
+from typing import Any
 from arena_contracts import CapabilityStatus, UsageRecord, UsageSource
 from arena_kernel.ids import generate_id
+
+_DATE_RE = re.compile(r"\b\d{1,2}\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü]+\s+\d{4}\b")
+_MONEY_RE = re.compile(r"\d[\d.,]*\s*(?:USD|EUR|TRY|TL)\b", re.IGNORECASE)
+
+
+def _deterministic_conflicts(documents: list[str]) -> list[dict[str, str]]:
+    """Rule-based conflict audit over the provided documents (deterministic mock).
+
+    Groups stated values per subject (dates, budget amounts); every subject with
+    two or more distinct values becomes one reported conflict. This keeps the
+    offline benchmark path meaningful while staying fully deterministic.
+    """
+    dates = sorted({match.group(0) for text in documents for match in _DATE_RE.finditer(text)})
+    amounts = sorted({match.group(0) for text in documents for match in _MONEY_RE.finditer(text)})
+    conflicts: list[dict[str, str]] = []
+    if len(dates) >= 2:
+        conflicts.append({"aspect": "teslim tarihi", "detail": "Tarihler çelişiyor: " + " vs ".join(dates)})
+    if len(amounts) >= 2:
+        conflicts.append({"aspect": "bütçe", "detail": "Tutarlar çelişiyor: " + " vs ".join(amounts)})
+    return conflicts
 
 
 class MockProvider:
@@ -22,12 +44,30 @@ class MockProvider:
 
     async def complete(
         self,
-        messages: list[dict[str, str]],
+        messages: list[dict[str, Any]],
         temperature: float = 0.2,
         max_tokens: int = 4096,
     ) -> dict[str, Any]:
-        """Simulate single completion with deterministic token counts."""
-        prompt_text = "".join(m.get("content", "") for m in messages)
+        """Simulate a completion: conflict-audit steps get a deterministic analysis."""
+        user_content = str(messages[-1].get("content", "")) if messages else ""
+        documents: list[str] = []
+        try:
+            payload = json.loads(user_content)
+            if isinstance(payload, dict):
+                raw_documents = payload.get("documents")
+                if isinstance(raw_documents, list):
+                    documents = [str(doc) for doc in raw_documents]
+                elif isinstance(payload.get("claims"), list):
+                    documents = [str(claim.get("claim", "")) for claim in payload["claims"] if isinstance(claim, dict)]
+        except ValueError:
+            documents = []
+
+        if documents:
+            content = json.dumps({"conflicts": _deterministic_conflicts(documents)}, ensure_ascii=False)
+        else:
+            content = "Analiz tamamlandı. Çelişkiler tespit edildi."
+
+        prompt_text = "".join(str(m.get("content", "")) for m in messages)
         prompt_tokens = max(10, len(prompt_text.split()))
         completion_tokens = 25
         total_tokens = prompt_tokens + completion_tokens
@@ -48,7 +88,7 @@ class MockProvider:
                 {
                     "message": {
                         "role": "assistant",
-                        "content": "Analiz tamamlandı. Çelişkiler tespit edildi.",
+                        "content": content,
                     },
                     "finish_reason": "stop",
                 }

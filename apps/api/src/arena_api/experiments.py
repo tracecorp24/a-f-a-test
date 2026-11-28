@@ -21,6 +21,10 @@ DEFAULT_THRESHOLD = 0.90
 ACTIVE = {"running", "paused"}
 RUNNABLE = {"built", "completed", "cancelled", "failed"}
 
+# Sources that carry exact, non-estimated token counts (ADR-0006): provider-reported
+# ledger records, directly measured values, and BPE-derived counts over the exact wire payload.
+EXACT_USAGE_SOURCES = {"measured", "provider_reported", "derived"}
+
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -203,27 +207,45 @@ class ArenaState:
         self._tasks[exp["id"]] = asyncio.create_task(self._orchestrate(exp["id"]))
 
     def pause(self, exp: dict[str, Any]) -> None:
-        if exp["status"] != "running":
-            raise IllegalStateTransitionError(exp["status"], "paused")
-        self._pause[exp["id"]].set()
-        exp["status"] = "paused"
-        self.add_event(exp, None, "experiment.paused", {})
+        with self.lock:  # check-then-act must be atomic vs. the orchestrator's final write (report 03 §1.2)
+            self._heal_zombie(exp)
+            if exp["status"] != "running" or exp.get("finished_at"):
+                raise IllegalStateTransitionError(exp["status"], "paused")
+            self._pause[exp["id"]].set()
+            exp["status"] = "paused"
+            self.add_event(exp, None, "experiment.paused", {})
         self.save()
 
     def resume(self, exp: dict[str, Any]) -> None:
-        if exp["status"] != "paused":
-            raise IllegalStateTransitionError(exp["status"], "running")
-        self._pause[exp["id"]].clear()
-        exp["status"] = "running"
-        self.add_event(exp, None, "experiment.resumed", {})
+        with self.lock:
+            self._heal_zombie(exp)
+            if exp["status"] != "paused" or exp.get("finished_at"):
+                raise IllegalStateTransitionError(exp["status"], "running")
+            self._pause[exp["id"]].clear()
+            exp["status"] = "running"
+            self.add_event(exp, None, "experiment.resumed", {})
         self.save()
 
     def cancel(self, exp: dict[str, Any]) -> None:
-        if exp["status"] not in ACTIVE:
-            raise IllegalStateTransitionError(exp["status"], "cancelled")
-        self._cancel[exp["id"]].set()
-        self._pause[exp["id"]].clear()
-        self.add_event(exp, None, "experiment.cancel_requested", {})
+        with self.lock:
+            self._heal_zombie(exp)
+            if exp["status"] not in ACTIVE or exp.get("finished_at"):
+                raise IllegalStateTransitionError(exp["status"], "cancelled")
+            self._cancel[exp["id"]].set()
+            self._pause[exp["id"]].clear()
+            self.add_event(exp, None, "experiment.cancel_requested", {})
+        self.save()
+
+    def _heal_zombie(self, exp: dict[str, Any]) -> None:
+        """Repair the unrecoverable 'finished_at set + paused/running' race state.
+
+        If the orchestrator already wrote a terminal timestamp while an endpoint
+        wrote ``paused`` without the lock, the experiment used to be stuck: both
+        resume and run refused the transition. Derive the honest status back from
+        the terminal marker (report 03 §1.2).
+        """
+        if exp.get("finished_at") and exp["status"] in ACTIVE:
+            exp["status"] = "failed" if exp.get("error") else "completed"
 
     # ------------------------------------------------------------------ orchestrator
     async def _orchestrate(self, exp_id: str) -> None:
@@ -279,6 +301,14 @@ class ArenaState:
         self.add_event(exp, fw, "run.started", {})
         reps: list[dict[str, Any]] = []
         all_events: list[dict[str, Any]] = []
+        usage_totals = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "reasoning_tokens": 0,
+            "cached_prompt_tokens": 0,
+            "requests": 0,
+        }
+        usage_source: str | None = None
 
         def on_event(record: dict[str, Any]) -> None:
             self.add_event(exp, fw, record["type"], record["payload"])
@@ -299,7 +329,15 @@ class ArenaState:
                 if ok
                 else runner.score_output(None, fixture["labeled_conflicts"], exp["threshold"])
             )
-            tokens = runner.estimate_tokens(result["events"], result["output"])
+            # Exact usage for this repetition, recorded by the Model Gateway ledger (ADR-0006).
+            ledger_usage = result["usage"]
+            tokens = ledger_usage["total_tokens"]
+            usage_totals["prompt_tokens"] += ledger_usage["prompt_tokens"]
+            usage_totals["completion_tokens"] += ledger_usage["completion_tokens"]
+            usage_totals["reasoning_tokens"] += ledger_usage.get("reasoning_tokens") or 0
+            usage_totals["cached_prompt_tokens"] += ledger_usage.get("cached_prompt_tokens") or 0
+            usage_totals["requests"] += ledger_usage["requests_count"]
+            usage_source = ledger_usage["usage_source"]
             reps.append({"ok": ok, "score": score, "tokens": tokens, "duration_ms": result["duration_ms"], "error": result["error"]})
             if repetition == 1:
                 all_events = result["events"]
@@ -334,9 +372,16 @@ class ArenaState:
                 "threshold": exp["threshold"],
             }
             cand["usage"] = {
-                "total_tokens": round(cand["measured"]["avg_tokens"]),
-                "source": "estimated",
-                "note": "İşçiler model çağrısı yapmaz; token değeri olay yüklerinin boyutundan tahmin edilir.",
+                # exact totals across all repetitions, straight from the gateway ledger (ADR-0006)
+                "total_tokens": usage_totals["prompt_tokens"] + usage_totals["completion_tokens"],
+                "prompt_tokens": usage_totals["prompt_tokens"],
+                "completion_tokens": usage_totals["completion_tokens"],
+                "reasoning_tokens": usage_totals["reasoning_tokens"],
+                "cached_prompt_tokens": usage_totals["cached_prompt_tokens"],
+                "requests": usage_totals["requests"],
+                "source": usage_source or "unknown",
+                "exact": (usage_source or "unknown") in EXACT_USAGE_SOURCES,
+                "note": "Token değerleri Model Gateway usage ledger'ındaki fiziksel istek kayıtlarından gelir (ADR-0006); tahmin içermez.",
             }
             cand["duration_ms"] = round(cand["measured"]["avg_duration_ms"], 3)
             cand["telemetry"] = runner.build_telemetry(all_events)

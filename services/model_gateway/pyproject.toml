@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "arena-gateway"
 version = "0.1.0"
 description = "Agentic Arena Model Gateway and Policy Enforcement"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arena-kernel",
@@ -14,6 +13,7 @@ dependencies = [
     "fastapi>=0.115.0",
     "cryptography>=44.0.0",
     "httpx>=0.28.0",
+    "tiktoken>=0.8.0",
 ]
 
 [tool.hatch.build.targets.wheel]

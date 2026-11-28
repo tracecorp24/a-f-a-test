@@ -19,10 +19,13 @@ class EvaluationEngine:
         is_passed = True
 
         if threshold is not None and actual_value is not None:
-            if isinstance(threshold, (int, float)) and isinstance(actual_value, (int, float)):
+            if isinstance(threshold, bool) or isinstance(actual_value, bool):
+                # bool must be checked before the numeric branch: bool is a subclass
+                # of int, so `isinstance(True, (int, float))` is True and the old
+                # ordering made the bool branch unreachable (report 03 §3.1).
+                is_passed = bool(actual_value) == bool(threshold)
+            elif isinstance(threshold, (int, float)) and isinstance(actual_value, (int, float)):
                 is_passed = actual_value >= threshold
-            elif isinstance(threshold, bool):
-                is_passed = actual_value == threshold
 
         status = CriterionStatus.PASSED if is_passed else CriterionStatus.FAILED
 

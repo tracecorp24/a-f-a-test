@@ -65,6 +65,13 @@ class UsageLedger:
         total_tokens = sum(r.total_tokens for r in run_records)
         total_reasoning = sum(r.reasoning_tokens or 0 for r in run_records)
         total_cached = sum(r.cached_prompt_tokens or 0 for r in run_records)
+        sources = {r.usage_source for r in run_records}
+        if not sources:
+            usage_source = UsageSource.UNKNOWN.value
+        elif len(sources) == 1:
+            usage_source = sources.pop().value
+        else:
+            usage_source = "mixed"
 
         return {
             "requests_count": len(run_records),
@@ -73,4 +80,5 @@ class UsageLedger:
             "total_tokens": total_tokens,
             "reasoning_tokens": total_reasoning,
             "cached_prompt_tokens": total_cached,
+            "usage_source": usage_source,
         }

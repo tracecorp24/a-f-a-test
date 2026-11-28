@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "arena-tool-broker"
 version = "0.1.0"
 description = "Agentic Arena Shared Tool Broker and Sandbox Access"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arena-kernel",

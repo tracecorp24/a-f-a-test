@@ -266,7 +266,8 @@ def create_app() -> FastAPI:
 
         task = spec["task_data"]
         repetitions = max(1, min(MAX_REPETITIONS, int(task.get("repetitions") or 1)))
-        threshold = float(task.get("threshold") or DEFAULT_THRESHOLD)
+        raw_threshold = task.get("threshold")
+        threshold = float(raw_threshold) if raw_threshold is not None else DEFAULT_THRESHOLD
         if threshold > 1:
             threshold /= 100
         exp_id = generate_id("exp")

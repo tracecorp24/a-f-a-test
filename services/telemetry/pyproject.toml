@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "arena-telemetry"
 version = "0.1.0"
 description = "Agentic Arena Event Processing and Telemetry"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arena-kernel",

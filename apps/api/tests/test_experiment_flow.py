@@ -62,13 +62,18 @@ def test_full_flow(client: TestClient) -> None:
     for cand in by_fw.values():
         assert cand["status"] == "completed"
         assert cand["evaluation"]["schema_pass"] is True
-        assert cand["usage"]["source"] == "estimated"
+        assert cand["usage"]["source"] == "provider_reported"
+        assert cand["usage"]["total_tokens"] > 0
+        assert cand["usage"]["requests"] >= 1
+        # exact ledger arithmetic: total is strictly prompt + completion (ADR-0006)
+        assert cand["usage"]["total_tokens"] == cand["usage"]["prompt_tokens"] + cand["usage"]["completion_tokens"]
         assert cand["progress"]["repetitions_done"] == 2
         assert set(cand["metrics"]) == {"quality", "speed", "token", "reliability"}
-    # LangGraph reports both labeled conflicts, CrewAI only one -> fails the F1 hard gate
+    # With the LLM-driven skeletons every framework's mock audit finds both labeled
+    # conflicts, so all of them pass the F1 hard gate (ADR-0007).
     assert by_fw["langgraph"]["evaluation"]["conflict_f1"] == 1.0
     assert by_fw["langgraph"]["evaluation"]["eligible"] is True
-    assert by_fw["crewai"]["evaluation"]["eligible"] is False
+    assert by_fw["crewai"]["evaluation"]["eligible"] is True
     assert by_fw["langgraph"]["telemetry"]["agents"]
 
     events = client.get(f"/v1/experiments/{exp_id}/events").json()
@@ -81,7 +86,7 @@ def test_full_flow(client: TestClient) -> None:
 
     ranking = client.post(f"/v1/experiments/{exp_id}/rankings", json={}).json()
     assert ranking["status"] == "RECOMMENDED"
-    assert "crewai" in ranking["ineligible"]
+    assert not ranking["ineligible"]
     assert ranking["winner"] in {c["framework_id"] for c in ranking["ranked"]}
     strict = client.post(f"/v1/experiments/{exp_id}/rankings", json={"min_quality": 100.1})
     assert strict.status_code == 422
@@ -114,7 +119,8 @@ def test_export_is_standalone_and_runnable(client: TestClient, fmt: str, tmp_pat
     assert "arena_" not in source
     run = subprocess.run([sys.executable, "-I", str(tmp_path / "main.py")], capture_output=True, text=True, encoding="utf-8")
     assert run.returncode == 0, run.stderr
-    assert json.loads(run.stdout)["conflict_count"] == 2
+    # Offline shim has no model access: the schema stays valid but conflicts need a provider.
+    assert json.loads(run.stdout)["conflict_count"] == 0
     assert client.get("/v1/exports").json()[0]["id"] == record["id"]
 
 

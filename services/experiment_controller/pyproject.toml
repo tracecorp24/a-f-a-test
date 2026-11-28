@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "arena-controller"
 version = "0.1.0"
 description = "Agentic Arena Experiment Controller and Job Orchestration"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arena-kernel",

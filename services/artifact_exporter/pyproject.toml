@@ -6,7 +6,6 @@ build-backend = "hatchling.build"
 name = "arena-artifact-exporter"
 version = "0.1.0"
 description = "Agentic Arena Standalone Project Exporter"
-readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "arena-kernel",

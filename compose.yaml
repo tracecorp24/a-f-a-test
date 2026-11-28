@@ -32,10 +32,18 @@ services:
       ARENA_DESIGN_MODEL: ${ARENA_DESIGN_MODEL:-}
       ARENA_DESIGN_API_KEY: ${ARENA_DESIGN_API_KEY:-}
       ARENA_DESIGN_BASE_URL: ${ARENA_DESIGN_BASE_URL:-https://api.openai.com/v1}
+      ARENA_PROVIDER_API_KEY: ${ARENA_PROVIDER_API_KEY:-}
+      ARENA_PROVIDER_TRANSPORT: ${ARENA_PROVIDER_TRANSPORT:-openai}
+      ARENA_PROVIDER_BASE_URL: ${ARENA_PROVIDER_BASE_URL:-https://api.openai.com/v1}
+      ARENA_MODEL_ID: ${ARENA_MODEL_ID:-mock-agent-model}
+      ARENA_DESIGN_TRANSPORT: ${ARENA_DESIGN_TRANSPORT:-openai}
+      ARENA_STATE_FILE: /app/data/arena_state.json
       DATABASE_URL: postgresql+psycopg://arena:arena_secret@postgres:5432/agentic_arena
       ARENA_MASTER_KEY: ${ARENA_MASTER_KEY:-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
     ports:
       - "127.0.0.1:8000:8000"
+    volumes:
+      - arena_state:/app/data
     networks:
       - control
     depends_on:
@@ -80,3 +88,4 @@ networks:
 
 volumes:
   postgres_data:
+  arena_state:
