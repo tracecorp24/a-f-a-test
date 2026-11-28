@@ -219,12 +219,15 @@ export function ComparisonLabPage() {
                   <div>
                     <h3 className="arena-card-title">{t("Ölçülen Çalıştırma")}</h3>
                     <KVRow label={t("Model")} value={experiment?.model_snapshot ?? "—"} />
-                    <KVRow label={t("Token (ledger)")} value={selected.usage ? selected.usage.total_tokens.toLocaleString(locale) : "—"} />
+                    <KVRow label={t("Token (ledger)")} value={selected.usage ? `${selected.usage.total_tokens.toLocaleString(locale)}${selected.usage.exact === false ? " (~)" : ""}` : "—"} />
                     <KVRow label={t("Süre (ort.)")} value={selected.duration_ms === undefined ? "—" : `${selected.duration_ms.toFixed(2)} ms`} />
                     <KVRow label={t("Tekrar")} value={`${selected.progress.repetitions_done} / ${selected.progress.repetitions_total}`} />
                     <KVRow label={t("Ajan sayısı")} value={selected.telemetry.agents.length} />
                     <KVRow label={t("Ajanlar arası mesaj")} value={selected.telemetry.links.reduce((s, l) => s + l.messages, 0)} />
-                    <KVRow label={t("İletişim tokenı")} value={selected.telemetry.links.reduce((s, l) => s + l.tokens, 0).toLocaleString(locale)} />
+                    <KVRow
+                      label={t("İletişim tokenı")}
+                      value={`${selected.telemetry.links.some((l) => (l.derived_tokens ?? 0) > 0) ? "~" : ""}${selected.telemetry.links.reduce((s, l) => s + l.tokens, 0).toLocaleString(locale)}`}
+                    />
                     <KVRow label={t("Görev devri")} value={selected.telemetry.links.reduce((s, l) => s + l.handoffs, 0)} />
                   </div>
                   <div>

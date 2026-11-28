@@ -132,6 +132,8 @@ def create_app() -> FastAPI:
     @app.get("/v1/system/status")
     async def system_status() -> dict[str, Any]:
         fixture = runner.fixture_state()
+        with state.lock:
+            usage_totals = state.usage_totals(list(state.candidates))
         return {
             "api": "healthy",
             "frameworks": len(runner.DEFAULT_FRAMEWORKS),
@@ -139,6 +141,7 @@ def create_app() -> FastAPI:
             "design_model_configured": bool(os.getenv("ARENA_DESIGN_MODEL") and os.getenv("ARENA_DESIGN_API_KEY")),
             "experiments": len(state.experiments),
             "executor": "native-worker-skeleton",
+            "token_usage": usage_totals,
         }
 
     # Projects & Specs
@@ -366,6 +369,7 @@ def create_app() -> FastAPI:
             "threshold": exp["threshold"],
             "repetitions": exp["repetitions"],
             "fixture": exp.get("fixture"),
+            "usage_totals": state.usage_totals(exp["candidates"]),
             "comparisons": comparisons,
         }
 

@@ -25,6 +25,7 @@ import yaml
 
 from arena_contracts import ArenaEvent, CriterionPolicy, RunSpec
 from arena_evaluation.domain.evaluator import EvaluationEngine
+from arena_gateway.domain.token_counter import count_tokens
 from arena_gateway.runtime import get_gateway
 from arena_kernel.ids import generate_id
 from arena_worker_sdk.protocol import WorkerProtocol

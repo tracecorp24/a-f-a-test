@@ -85,4 +85,6 @@ export const DICT_EXECUTION_ARENA: Record<string, string> = {
   "Giden Token": "Outgoing Tokens",
   "Gelen Token": "Incoming Tokens",
   "Aktarılan Handoff": "Relayed Handoffs",
+  "türetilmiş": "derived",
+  "kesin": "exact",
 };

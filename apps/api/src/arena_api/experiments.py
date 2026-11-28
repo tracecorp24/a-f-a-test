@@ -101,6 +101,43 @@ class ArenaState:
         return cand
 
     # ------------------------------------------------------------------ views
+    def usage_totals(self, candidate_ids: list[str]) -> dict[str, Any]:
+        """Aggregate exact token consumption over the given candidates (ledger-based, ADR-0006).
+
+        Never estimated: values come from each candidate's recorded usage, which is
+        written by the Model Gateway usage ledger. Candidates without measured usage
+        (not yet run) are excluded and counted in ``candidates_pending``.
+        """
+        totals = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "reasoning_tokens": 0,
+            "cached_prompt_tokens": 0,
+            "requests": 0,
+        }
+        sources: set[str] = set()
+        counted = 0
+        pending = 0
+        for cid in candidate_ids:
+            usage = self.candidates.get(cid, {}).get("usage")
+            if not usage:
+                pending += 1
+                continue
+            counted += 1
+            for key in ("prompt_tokens", "completion_tokens", "reasoning_tokens", "cached_prompt_tokens", "requests"):
+                totals[key] += int(usage.get(key) or 0)
+            sources.add(usage.get("source", "unknown"))
+        totals["total_tokens"] = totals["prompt_tokens"] + totals["completion_tokens"]
+        totals["candidates_counted"] = counted
+        totals["candidates_pending"] = pending
+        if len(sources) == 1:
+            totals["source"] = next(iter(sources))
+        else:
+            totals["source"] = "mixed" if sources else "none"
+        # "none" means no model call was made at all: a total of 0 is still exact.
+        totals["exact"] = all(s in EXACT_USAGE_SOURCES or s == "none" for s in sources)
+        return totals
+
     def candidate_view(self, cand: dict[str, Any]) -> dict[str, Any]:
         """Candidate without the (large) source code."""
         return {k: v for k, v in cand.items() if k != "code"}
@@ -120,6 +157,7 @@ class ArenaState:
             "completed_count": len(done),
             "total_count": len(cands),
             "model_snapshot": exp["model_snapshot"],
+            "usage_totals": self.usage_totals(exp["candidates"]),
         }
 
     def detail(self, exp: dict[str, Any]) -> dict[str, Any]:
@@ -337,7 +375,7 @@ class ArenaState:
             usage_totals["reasoning_tokens"] += ledger_usage.get("reasoning_tokens") or 0
             usage_totals["cached_prompt_tokens"] += ledger_usage.get("cached_prompt_tokens") or 0
             usage_totals["requests"] += ledger_usage["requests_count"]
-            usage_source = ledger_usage["usage_source"]
+            usage_source = ledger_usage["usage_source"] if ledger_usage["requests_count"] else "none"
             reps.append({"ok": ok, "score": score, "tokens": tokens, "duration_ms": result["duration_ms"], "error": result["error"]})
             if repetition == 1:
                 all_events = result["events"]
@@ -380,8 +418,12 @@ class ArenaState:
                 "cached_prompt_tokens": usage_totals["cached_prompt_tokens"],
                 "requests": usage_totals["requests"],
                 "source": usage_source or "unknown",
-                "exact": (usage_source or "unknown") in EXACT_USAGE_SOURCES,
-                "note": "Token değerleri Model Gateway usage ledger'ındaki fiziksel istek kayıtlarından gelir (ADR-0006); tahmin içermez.",
+                "exact": (usage_source or "unknown") in EXACT_USAGE_SOURCES or usage_source == "none",
+                "note": (
+                    "İşçi hiç model çağrısı yapmadı; LLM token tüketimi kesin olarak 0."
+                    if (usage_source or "") == "none"
+                    else "Token değerleri Model Gateway usage ledger'ındaki fiziksel istek kayıtlarından gelir (ADR-0006); tahmin içermez."
+                ),
             }
             cand["duration_ms"] = round(cand["measured"]["avg_duration_ms"], 3)
             cand["telemetry"] = runner.build_telemetry(all_events)

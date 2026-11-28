@@ -74,6 +74,10 @@ export interface TelemetryLink {
   messages: number;
   tokens: number;
   handoffs: number;
+  /** Exact provider/ledger-reported token portion (ADR-0006). */
+  exact_tokens?: number;
+  /** Payload-volume portion counted with the BPE tokenizer (derived, not LLM consumption). */
+  derived_tokens?: number;
 }
 
 export interface Candidate {
@@ -87,8 +91,12 @@ export interface Candidate {
     total_tokens: number;
     prompt_tokens?: number;
     completion_tokens?: number;
+    reasoning_tokens?: number;
+    cached_prompt_tokens?: number;
     requests?: number;
     source: string;
+    /** True when every value is exact (ledger / no model calls), false when derived or estimated. */
+    exact?: boolean;
     note: string;
   } | null;
   duration_ms?: number;

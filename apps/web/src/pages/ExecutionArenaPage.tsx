@@ -95,6 +95,7 @@ export function ExecutionArenaPage() {
   const totalMsgs = telemetry.links.reduce((s, l) => s + l.messages, 0);
   const totalHandoffs = telemetry.links.reduce((s, l) => s + l.handoffs, 0);
   const totalTokComm = telemetry.links.reduce((s, l) => s + l.tokens, 0);
+  const tokCommDerived = telemetry.links.some((l) => (l.derived_tokens ?? 0) > 0);
   const sentLinks = telemetry.links.filter((l) => l.from === selectedAgent);
   const receivedLinks = telemetry.links.filter((l) => l.to === selectedAgent);
   const filteredEvents = events
@@ -277,7 +278,7 @@ export function ExecutionArenaPage() {
                   <span style={{ color: THEME.line }}>|</span>
                   <span style={{ color: THEME.purple }}>{totalHandoffs} Handoff</span>
                   <span style={{ color: THEME.line }}>|</span>
-                  <span className="arena-mono" style={{ color: THEME.green }}>{totalTokComm.toLocaleString(locale)} tok</span>
+                  <span className="arena-mono" style={{ color: THEME.green }}>{tokCommDerived ? `~${totalTokComm.toLocaleString(locale)}` : totalTokComm.toLocaleString(locale)} tok</span>
                 </span>
               </div>
             </div>
@@ -309,7 +310,7 @@ export function ExecutionArenaPage() {
                             <path d={`M${x1} 76 V${lane} H${x2} V80`} fill="none" stroke={THEME.cyan} strokeWidth={sw} strokeOpacity={0.7} markerEnd="url(#arrowT)" />
                             <rect x={(x1 + x2) / 2 - 12} y={lane - 11} width="24" height="22" rx="5" fill="var(--bg-active)" />
                             <text x={(x1 + x2) / 2} y={lane + 4} textAnchor="middle" fill="var(--accent-cyan)" fontSize="12" fontWeight="700">{i + 1}</text>
-                            <title>{`${lk.from} → ${lk.to} · ${lk.messages} ${t("mesaj")} · ~${lk.tokens} token`}</title>
+                            <title>{`${lk.from} → ${lk.to} · ${lk.messages} ${t("mesaj")} · ${(lk.derived_tokens ?? 0) > 0 ? `~${lk.tokens}` : lk.tokens} token${(lk.derived_tokens ?? 0) > 0 ? ` (${lk.derived_tokens} ${t("türetilmiş")})` : ` (${t("kesin")})`}`}</title>
                           </g>
                         );
                       })}
@@ -335,7 +336,7 @@ export function ExecutionArenaPage() {
                             <td style={{ fontWeight: 600 }}>{lk.from}</td>
                             <td style={{ color: THEME.muted }}>{lk.to}</td>
                             <td className="arena-mono" style={{ color: THEME.cyan, fontWeight: 700 }}>{lk.messages}</td>
-                            <td className="arena-mono">{lk.tokens}</td>
+                            <td className="arena-mono">{(lk.derived_tokens ?? 0) > 0 ? `~${lk.tokens}` : lk.tokens}</td>
                             <td className="arena-mono" style={{ color: THEME.purple, fontWeight: 600 }}>{lk.handoffs}</td>
                           </tr>
                         ))}
@@ -387,7 +388,7 @@ export function ExecutionArenaPage() {
           <div style={{ padding: 16 }}>
             <KVRow label={t("Toplam Mesaj")} value={totalMsgs} />
             <KVRow label={t("Toplam Handoff")} value={totalHandoffs} color={THEME.purple} />
-            <KVRow label={t("İletişim Tokenı")} value={totalTokComm.toLocaleString(locale)} color={THEME.green} />
+            <KVRow label={t("İletişim Tokenı")} value={`${tokCommDerived ? "~" : ""}${totalTokComm.toLocaleString(locale)}${tokCommDerived ? ` (${t("türetilmiş")})` : ` (${t("kesin")})`}`} color={THEME.green} />
             {selected?.usage?.prompt_tokens != null && (
               <KVRow
                 label={t("Prompt / Yanıt (ledger)")}
