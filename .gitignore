@@ -66,8 +66,11 @@ desktop.ini
 .taste-skill/
 docs/plans/taste-skill/
 
-# --- Local asset bundles (uploaded via GitHub settings, not tracked) ---
-images/
+# --- Asset bundles: only the README-trackable PNGs are committed ---
+images/*
+!images/AFA-10-GitHub-Visuals/
+images/AFA-10-GitHub-Visuals/*
+!images/AFA-10-GitHub-Visuals/*.png
 
 # --- Working design prototypes (exploration only, not part of the product) ---
 design-agents/

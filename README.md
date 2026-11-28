@@ -1,5 +1,7 @@
 # Agentic Framework Arena
 
+![Agentic Framework Arena — one task, ten frameworks, one winner](images/AFA-10-GitHub-Visuals/01-architecture.png)
+
 > **One task. One model. Ten frameworks. Measurable results.**
 
 Agentic Framework Arena is an open-source platform that builds independent, native
@@ -122,6 +124,8 @@ Other useful commands: `make lint` (ruff + mypy), `make format`, `make contracts
 
 ## Framework catalog
 
+![Framework race — who builds the best agent pipeline?](images/AFA-10-GitHub-Visuals/02-framework-race.png)
+
 | Framework | Runtime | Native paradigm |
 |---|---|---|
 | [LangGraph](https://github.com/langchain-ai/langgraph) | Python | State / graph |
@@ -134,6 +138,16 @@ Other useful commands: `make lint` (ruff + mypy), `make format`, `make contracts
 | [LlamaAgents](https://github.com/run-llama/llama-agents) | Python | Event-driven async workflow |
 | [Smolagents](https://github.com/huggingface/smolagents) | Python | Code / tool-calling agent |
 | [Mastra](https://github.com/mastra-ai/mastra) | TypeScript | Agent / workflow |
+
+## Visual tour
+
+| Live comparison — the same task across all ten frameworks, in real time | Benchmark lab — controlled, repeatable evaluation |
+|---|---|
+| ![Live comparison](images/AFA-10-GitHub-Visuals/04-live-comparison.png) | ![Benchmark lab](images/AFA-10-GitHub-Visuals/07-benchmark-lab.png) |
+
+| From comparison to recommendation — evidence-based winner selection |
+|---|
+| ![From comparison to recommendation](images/AFA-10-GitHub-Visuals/09-recommendation.png) |
 
 ## Project documentation
 
