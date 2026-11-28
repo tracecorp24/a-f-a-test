@@ -83,7 +83,14 @@ export interface Candidate {
   status: CandidateStatus;
   metrics: Metrics | null;
   evaluation: Evaluation | null;
-  usage: { total_tokens: number; source: string; note: string } | null;
+  usage: {
+    total_tokens: number;
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    requests?: number;
+    source: string;
+    note: string;
+  } | null;
   duration_ms?: number;
   progress: { repetitions_done: number; repetitions_total: number };
   telemetry: { agents: string[]; links: TelemetryLink[] };

@@ -1,0 +1,60 @@
+// Bu dosya alt ajanlar tarafından doldurulur.
+export const DICT_TASK_PIPELINE: Record<string, string> = {
+  // PageHeader
+  "AŞAMA 2 · GÖREV VE PİPELINE STÜDYOSU": "STAGE 2 · TASK AND PIPELINE STUDIO",
+  "Görev Tanımı ve Akış Tasarımı": "Task Definition and Flow Design",
+  "Önce görevi belirtin. Ardından kapsamı netleştirin, framework akışını inceleyin ve görev benchmarkını tasarlayın.": "First specify the task. Then clarify the scope, review the framework flow, and design the task benchmark.",
+  "Demo görev yüklendi": "Demo task loaded",
+  "Demo Görevi Yükle": "Load Demo Task",
+  "Görev tasarımı adımları": "Task design steps",
+  "AI sağlayıcısı yapılandırılmadığı için yerleşik akış ve soru şablonu kullanıldı. Akışı ve yanıtları düzenleyebilirsiniz.": "No AI provider is configured, so the built-in flow and question templates were used. You can edit the flow and responses.",
+  "AI taslağı hazırlanıyor…": "Preparing AI draft…",
+  // Prompt step
+  "Framework Arena'ya ne yaptırmak istiyorsunuz?": "What should Framework Arena do?",
+  "Promptu Gönder ve Akış Oluştur": "Submit Prompt and Create Flow",
+  "Akışa Göre Soruları Oluştur": "Generate Questions from Flow",
+  // Sample objectives (module-scope data, wrapped at render site)
+  "Sözleşmeleri analiz et, teslim tarihi ve bütçe çelişkilerini bul ve kanıtlı rapor üret.": "Analyze contracts, find delivery date and budget conflicts, and produce an evidence-backed report.",
+  "Kaynak kod deposunu incele, gizli anahtar ve SQL enjeksiyon açıklarını CVE referanslarıyla raporla.": "Inspect the source code repository and report secret key and SQL injection vulnerabilities with CVE references.",
+  "Finansal tabloları ve son 30 günlük bültenleri karşılaştır, likidite risklerini modelle.": "Compare financial statements and the last 30 days of bulletins, and model liquidity risks.",
+  "REST API şemasına göre uç nokta sınır değerlerini test eden JSON senaryoları hazırla.": "Prepare JSON scenarios that test endpoint boundary values against the REST API schema.",
+  // Step buttons (module-scope data, wrapped at render site)
+  "1. Görev Tanımı ve Netleştirme": "1. Task Definition and Clarification",
+  "2. Pipeline Oluştur": "2. Create Pipeline",
+  "3. Başarı Kriteri Tasarımı": "3. Success Criteria Design",
+  // Scope step
+  "Görevi Netleştir": "Clarify the Task",
+  "Görev veya akış değişti. Devam etmek için soruları güncelleyin.": "The task or flow changed. Refresh the questions to continue.",
+  "Pipeline'ı Oluştur →": "Create Pipeline →",
+  // Pipeline step
+  "Framework akışları": "Framework flows",
+  "Akış Şeması": "Flow Diagram",
+  "Framework Bilgileri": "Framework Details",
+  "Görev kapsamı ve netleştirme yanıtları": "Task scope and clarification answers",
+  "Ek kapsam talimatı:": "Additional scope instruction:",
+  "Kod İskeleti": "Code Skeleton",
+  "Çalıştırmada Ölçülecek Değerler": "Values Measured in the Run",
+  "Çalışma süresi, token kullanımı ve benchmark sonucu çalıştırma sonrasında belirlenir.": "Runtime, token usage, and benchmark result are determined after the run.",
+  "Başarı Kriteri Tasarımı →": "Success Criteria Design →",
+  // Criteria step
+  "Görev Benchmarkı Tasarımı": "Task Benchmark Design",
+  "Çalıştırılacak framework'ler": "Frameworks to run",
+  "Kabul kuralı:": "Acceptance rule:",
+  "görüldüğünde test başarısız sayılır.": "detected, the test is counted as failed.",
+  "Hesaplama:": "Calculation:",
+  "Payda sıfırsa test başarısız sayılır.": "If the denominator is zero, the test is counted as failed.",
+  "Test planı": "The test plan includes",
+  "örnek ve örnek başına": "samples and",
+  "tekrar içerir.": "repetitions per sample.",
+  "← Akışa Dön": "← Back to Flow",
+  "Kriterler Onaylandı": "Criteria Approved",
+  "Kriterleri Onayla": "Approve Criteria",
+  "Başlatılıyor…": "Launching…",
+  "▶ Arenayı Başlat": "▶ Launch Arena",
+  // Errors and defaults
+  "Tasarım isteği tamamlanamadı.": "The design request could not be completed.",
+  "Görev tasarımı API’sine bağlanılamadı.": "Could not connect to the task design API.",
+  "Tasarım oluşturulamadı.": "The design could not be generated.",
+  "Deney başlatılamadı.": "The experiment could not be launched.",
+  "Görev": "Task",
+};

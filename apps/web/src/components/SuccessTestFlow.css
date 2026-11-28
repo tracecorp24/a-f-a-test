@@ -34,7 +34,7 @@
   position: absolute;
   inset: -22px 0 auto;
   content: "↓" / "";
-  color: #53cbe8;
+  color: var(--accent-cyan);
 }
 
 .success-test-flow-node > span {
@@ -42,7 +42,7 @@
 }
 
 .success-test-flow-decision {
-  border-color: #e7b971;
+  border-color: var(--accent-amber);
 }
 
 .success-test-flow-branches {
@@ -58,9 +58,25 @@
   padding: 6px;
   border: 1px solid currentColor;
   border-radius: 6px;
-  color: #52d8a4;
+  color: var(--accent-green);
 }
 
 .success-test-flow-branches li + li {
-  color: #ef8694;
+  color: var(--accent-rose);
+}
+
+[data-theme="light"] .success-test-flow-node {
+  background: rgba(60, 64, 67, 0.03);
+}
+
+[data-theme="light"] .success-test-flow-node + .success-test-flow-node::before {
+  color: #1a73e8;
+}
+
+[data-theme="light"] .success-test-flow-branches li {
+  color: #188038;
+}
+
+[data-theme="light"] .success-test-flow-branches li + li {
+  color: #d93025;
 }

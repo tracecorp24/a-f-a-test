@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { STATUS_LABEL, type ExperimentSummary } from "../api/client";
 import { THEME } from "../data/mockData";
+import { useI18n } from "../i18n";
 
 export function ExperimentPicker({
   list,
@@ -11,10 +12,11 @@ export function ExperimentPicker({
   value: string | null;
   onChange: (id: string) => void;
 }) {
+  const { t, locale } = useI18n();
   if (!list.length) return null;
   return (
     <label style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 12, color: THEME.muted }}>
-      Deney
+      {t("Deney")}
       <select
         className="arena-select"
         value={value ?? ""}
@@ -23,7 +25,7 @@ export function ExperimentPicker({
       >
         {list.map((item) => (
           <option key={item.id} value={item.id}>
-            {new Date(item.created_at).toLocaleString("tr-TR")} · {STATUS_LABEL[item.status]} · {item.objective.slice(0, 40) || item.id}
+            {new Date(item.created_at).toLocaleString(locale)} · {t(STATUS_LABEL[item.status])} · {item.objective.slice(0, 40) || item.id}
           </option>
         ))}
       </select>
@@ -32,19 +34,20 @@ export function ExperimentPicker({
 }
 
 export function NoExperiment({ loading, error }: { loading: boolean; error: string }) {
+  const { t } = useI18n();
   return (
     <section className="arena-card arena-card-pad" role={error ? "alert" : "status"}>
       {loading ? (
-        <p>Deneyler yükleniyor…</p>
+        <p>{t("Deneyler yükleniyor…")}</p>
       ) : error ? (
         <p style={{ color: THEME.red }}>{error}</p>
       ) : (
         <>
-          <h2 className="arena-card-title">Henüz bir deney yok</h2>
+          <h2 className="arena-card-title">{t("Henüz bir deney yok")}</h2>
           <p style={{ color: THEME.muted }}>
-            Önce Görev Stüdyosu’nda bir görev tanımlayıp benchmark kriterlerini onaylayın ve arenayı başlatın.
+            {t("Önce Görev Stüdyosu’nda bir görev tanımlayıp benchmark kriterlerini onaylayın ve arenayı başlatın.")}
           </p>
-          <Link to="/task-pipeline" className="arena-btn arena-btn-primary">Görev Stüdyosuna Git →</Link>
+          <Link to="/task-pipeline" className="arena-btn arena-btn-primary">{t("Görev Stüdyosuna Git →")}</Link>
         </>
       )}
     </section>

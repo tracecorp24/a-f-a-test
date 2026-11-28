@@ -1,18 +1,22 @@
+import { getPalette } from "../theme";
+
+// Tema-duyarlı renk paleti: getter'lar aktif temadan okur, böylece
+// bileşenlerdeki inline stiller de açık/koyu temaya uyum sağlar.
 export const THEME = {
-  bg: "#0b1018",
-  panel: "#121926",
-  panelAlt: "#0d131d",
-  line: "#1e293b",
-  lineSubtle: "#161f2e",
-  muted: "#94a3b8",
-  subtle: "#64748b",
-  text: "#f1f5f9",
-  cyan: "#38bdf8",
-  blue: "#60a5fa",
-  green: "#34d399",
-  purple: "#a78bfa",
-  amber: "#fbbf24",
-  red: "#fb7185",
+  get bg() { return getPalette().bg; },
+  get panel() { return getPalette().panel; },
+  get panelAlt() { return getPalette().panelAlt; },
+  get line() { return getPalette().line; },
+  get lineSubtle() { return getPalette().lineSubtle; },
+  get muted() { return getPalette().muted; },
+  get subtle() { return getPalette().subtle; },
+  get text() { return getPalette().text; },
+  get cyan() { return getPalette().cyan; },
+  get blue() { return getPalette().blue; },
+  get green() { return getPalette().green; },
+  get purple() { return getPalette().purple; },
+  get amber() { return getPalette().amber; },
+  get red() { return getPalette().red; },
 };
 
 export interface FrameworkRecord {

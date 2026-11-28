@@ -5,6 +5,7 @@ import { api, ApiError, frameworkName, post, STATUS_LABEL, type ExportRecord, ty
 import { resolveExperimentId, useExperiment, useExperimentList } from "../api/useExperiment";
 import { ExperimentPicker, NoExperiment } from "../components/ExperimentPicker";
 import { PageHeader } from "../components/UI";
+import { useI18n } from "../i18n";
 
 type Format = ExportRecord["format"];
 
@@ -17,6 +18,7 @@ const FORMATS: { id: Format; label: string; hint: string }[] = [
 const kb = (bytes: number) => `${(bytes / 1024).toFixed(1)} KB`;
 
 export function LibraryExporterPage() {
+  const { t, locale } = useI18n();
   const routed = useLocation().state as { experimentId?: string; candidateId?: string } | null;
   const { list, loading: listLoading, error: listError } = useExperimentList();
   const [chosen, setChosen] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export function LibraryExporterPage() {
       setCreated(record);
       await loadHistory();
     } catch (e) {
-      setActionError(e instanceof ApiError ? e.message : "Paket oluşturulamadı.");
+      setActionError(e instanceof ApiError ? e.message : t("Paket oluşturulamadı."));
     } finally {
       setBusy(false);
     }
@@ -89,7 +91,7 @@ export function LibraryExporterPage() {
       const response = await fetch(`/v1/exports/${record.id}/download`);
       if (!response.ok) {
         const body = await response.json().catch(() => null) as { message?: string } | null;
-        throw new ApiError(body?.message ?? `İndirme başarısız (${response.status}).`, response.status);
+        throw new ApiError(body?.message ?? `${t("İndirme başarısız (")}${response.status}${t(").")}`, response.status);
       }
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -101,7 +103,7 @@ export function LibraryExporterPage() {
       link.remove();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setActionError(e instanceof ApiError ? e.message : "Paket indirilemedi.");
+      setActionError(e instanceof ApiError ? e.message : t("Paket indirilemedi."));
     }
   }
 
@@ -110,16 +112,16 @@ export function LibraryExporterPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="ADR-0009 VE ADR-0010 SECRET-FREE DIŞA AKTARIM"
-        title="Proje Dışa Aktarımı ve Çıktılar"
-        description="Seçilen adayın pipeline'ını platform bağımlılığı ve gizli anahtar içermeyen taşınabilir bağımsız paket olarak indirin."
+        eyebrow={t("ADR-0009 VE ADR-0010 SECRET-FREE DIŞA AKTARIM")}
+        title={t("Proje Dışa Aktarımı ve Çıktılar")}
+        description={t("Seçilen adayın pipeline'ını platform bağımlılığı ve gizli anahtar içermeyen taşınabilir bağımsız paket olarak indirin.")}
         right={
           <>
             <ExperimentPicker list={list} value={expId} onChange={setChosen} />
             <div className="arena-status-bar">
-              <span style={{ color: THEME.green }}>✓ Secret-Free Denetlendi</span>
+              <span style={{ color: THEME.green }}>{t("✓ Secret-Free Denetlendi")}</span>
               <span style={{ color: THEME.line }}>|</span>
-              <span style={{ color: THEME.cyan }}>Sıfır Platform Bağımlılığı</span>
+              <span style={{ color: THEME.cyan }}>{t("Sıfır Platform Bağımlılığı")}</span>
             </div>
           </>
         }
@@ -132,22 +134,22 @@ export function LibraryExporterPage() {
           <div className="arena-card arena-card-pad">
             {(error || actionError) && <p role="alert" style={{ color: THEME.red }}>{actionError || error}</p>}
             {experiment && experiment.status !== "completed" && (
-              <p role="status" style={{ color: THEME.amber }}>Deney durumu: {STATUS_LABEL[experiment.status]}. Tamamlanan adaylar dışa aktarılabilir.</p>
+              <p role="status" style={{ color: THEME.amber }}>{t("Deney durumu: ")}{t(STATUS_LABEL[experiment.status])}. {t("Tamamlanan adaylar dışa aktarılabilir.")}</p>
             )}
 
-            <div role="group" aria-label="Paket biçimi" style={{ display: "flex", gap: 8, marginBottom: 18, borderBottom: `1px solid ${THEME.line}`, paddingBottom: 14, flexWrap: "wrap" }}>
+            <div role="group" aria-label={t("Paket biçimi")} style={{ display: "flex", gap: 8, marginBottom: 18, borderBottom: `1px solid ${THEME.line}`, paddingBottom: 14, flexWrap: "wrap" }}>
               {FORMATS.map((tab) => (
                 <button key={tab.id} aria-pressed={format === tab.id} onClick={() => { setFormat(tab.id); setCreated(null); }} className={`arena-btn ${format === tab.id ? "arena-btn-primary" : ""}`}>
-                  {tab.label}
+                  {t(tab.label)}
                 </button>
               ))}
             </div>
 
             {exportable.length === 0 ? (
-              <p style={{ color: THEME.muted }}>Dışa aktarılabilecek tamamlanmış aday yok.</p>
+              <p style={{ color: THEME.muted }}>{t("Dışa aktarılabilecek tamamlanmış aday yok.")}</p>
             ) : (
               <>
-                <label style={{ display: "block", fontSize: 12, color: THEME.muted, marginBottom: 6 }} htmlFor="export-candidate">Aday framework</label>
+                <label style={{ display: "block", fontSize: 12, color: THEME.muted, marginBottom: 6 }} htmlFor="export-candidate">{t("Aday framework")}</label>
                 <select
                   id="export-candidate"
                   value={candidateId ?? ""}
@@ -156,7 +158,7 @@ export function LibraryExporterPage() {
                 >
                   {exportable.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {frameworkName(c.framework_id)}{c.id === winner ? " ★ Önerilen" : ""}{c.evaluation && !c.evaluation.eligible ? " (hard gate geçemedi)" : ""}
+                      {frameworkName(c.framework_id)}{c.id === winner ? t(" ★ Önerilen") : ""}{c.evaluation && !c.evaluation.eligible ? t(" (hard gate geçemedi)") : ""}
                     </option>
                   ))}
                 </select>
@@ -167,7 +169,7 @@ export function LibraryExporterPage() {
                   </h3>
                 )}
                 <p style={{ fontSize: 12.5, color: THEME.muted, lineHeight: 1.6, margin: "0 0 18px" }}>
-                  {selectedFormat.hint}. Paket hiçbir Arena kütüphanesine veya platform gizli anahtarına bağımlı değildir.
+                  {t(selectedFormat.hint)}. {t("Paket hiçbir Arena kütüphanesine veya platform gizli anahtarına bağımlı değildir.")}
                 </p>
 
                 <div className="arena-mono" style={{ backgroundColor: THEME.panelAlt, borderRadius: 8, padding: 16, fontSize: 12, color: THEME.text, marginBottom: 20, border: `1px solid ${THEME.line}`, lineHeight: 1.9 }}>
@@ -178,17 +180,17 @@ export function LibraryExporterPage() {
 
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <button onClick={() => void createPackage()} disabled={!candidate || busy} className="arena-btn" style={{ padding: "10px 22px", fontSize: 13 }}>
-                    {busy ? "Hazırlanıyor…" : "Paketi Oluştur ve Doğrula"}
+                    {busy ? t("Hazırlanıyor…") : t("Paketi Oluştur ve Doğrula")}
                   </button>
                   {created && (
                     <button onClick={() => void download(created)} className="arena-btn arena-btn-primary" style={{ padding: "10px 22px", fontSize: 13 }}>
-                      ⤓ İndir ({kb(created.size_bytes)})
+                      {t("⤓ İndir (")}{kb(created.size_bytes)})
                     </button>
                   )}
                 </div>
                 {created && (
                   <p className="arena-mono" style={{ fontSize: 11, color: THEME.green, marginTop: 12, overflowWrap: "anywhere" }}>
-                    ✓ SHA-256 {created.sha256} · {created.secrets_found} gizli anahtar bulundu
+                    ✓ SHA-256 {created.sha256} · {created.secrets_found} {t("gizli anahtar bulundu")}
                   </p>
                 )}
               </>
@@ -196,9 +198,9 @@ export function LibraryExporterPage() {
           </div>
 
           <div className="arena-card arena-card-pad">
-            <h4 style={{ fontSize: 12.5, color: THEME.muted, margin: "0 0 14px", textTransform: "uppercase", letterSpacing: "0.06em" }}>Dışa Aktarım Geçmişi ve Doğrulama</h4>
+            <h4 style={{ fontSize: 12.5, color: THEME.muted, margin: "0 0 14px", textTransform: "uppercase", letterSpacing: "0.06em" }}>{t("Dışa Aktarım Geçmişi ve Doğrulama")}</h4>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 12 }}>
-              {history.length === 0 && <p style={{ color: THEME.muted, margin: 0 }}>Henüz dışa aktarım yok.</p>}
+              {history.length === 0 && <p style={{ color: THEME.muted, margin: 0 }}>{t("Henüz dışa aktarım yok.")}</p>}
               {history.slice(0, 10).map((item) => (
                 <div key={item.id} style={{ backgroundColor: THEME.panelAlt, padding: 12, borderRadius: 8, border: `1px solid ${THEME.lineSubtle}` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, gap: 8 }}>
@@ -206,16 +208,16 @@ export function LibraryExporterPage() {
                     <span className="arena-mono" style={{ color: THEME.green, whiteSpace: "nowrap" }}>✓ SHA256 OK</span>
                   </div>
                   <div className="arena-mono" style={{ fontSize: 11, color: THEME.muted, display: "flex", justifyContent: "space-between", gap: 8 }}>
-                    <span>{new Date(item.created_at).toLocaleString("tr-TR")} · {kb(item.size_bytes)} · {item.secrets_found} gizli anahtar</span>
-                    <button type="button" className="arena-btn" style={{ padding: "2px 10px", fontSize: 11 }} onClick={() => void download(item)}>İndir</button>
+                    <span>{new Date(item.created_at).toLocaleString(locale)} · {kb(item.size_bytes)} · {item.secrets_found} {t("gizli anahtar")}</span>
+                    <button type="button" className="arena-btn" style={{ padding: "2px 10px", fontSize: 11 }} onClick={() => void download(item)}>{t("İndir")}</button>
                   </div>
                 </div>
               ))}
             </div>
             <div style={{ marginTop: 20, padding: 14, borderRadius: 8, backgroundColor: "rgba(52, 211, 153, 0.08)", border: "1px solid rgba(52, 211, 153, 0.25)" }}>
-              <div style={{ color: THEME.green, fontWeight: 600, fontSize: 12, marginBottom: 5 }}>✓ ADR-0009 İzolasyon Garantisi</div>
+              <div style={{ color: THEME.green, fontWeight: 600, fontSize: 12, marginBottom: 5 }}>{t("✓ ADR-0009 İzolasyon Garantisi")}</div>
               <div style={{ color: THEME.muted, fontSize: 12, lineHeight: 1.55 }}>
-                Paket oluşturulurken kaynak kod gizli anahtar desenleri için taranır; bulunursa dışa aktarım engellenir. İndirilen paketin SHA-256 özeti sunucuda yeniden doğrulanır.
+                {t("Paket oluşturulurken kaynak kod gizli anahtar desenleri için taranır; bulunursa dışa aktarım engellenir. İndirilen paketin SHA-256 özeti sunucuda yeniden doğrulanır.")}
               </div>
             </div>
           </div>

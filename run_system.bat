@@ -13,8 +13,25 @@ echo.
 set "ROOT_DIR=%~dp0"
 cd /d "%ROOT_DIR%"
 
+:: Load .env (if present) so ARENA_PROVIDER_API_KEY / ARENA_DESIGN_* reach the API process
+if exist "%ROOT_DIR%.env" (
+    echo [*] Loading environment from .env ...
+    for /f "usebackq eol=# tokens=1,* delims==" %%a in ("%ROOT_DIR%.env") do (
+        if not "%%a"=="" if not "%%b"=="" set "%%a=%%b"
+    )
+) else (
+    echo [!] No .env found. Copy .env.example to .env and add your API key:
+    echo     ARENA_PROVIDER_API_KEY=sk-...     ^(benchmark LLM calls^)
+    echo     ARENA_DESIGN_API_KEY=sk-...       ^(task design / spec generation^)
+)
+if defined ARENA_PROVIDER_API_KEY (
+    echo [*] Provider key detected - benchmark workers will call the real model.
+) else (
+    echo [!] ARENA_PROVIDER_API_KEY not set - benchmark workers fall back to the mock model.
+)
+
 :: Configure PYTHONPATH for all kernel, contracts, SDKs, and services
-set "PYTHONPATH=%ROOT_DIR%packages\kernel\src;%ROOT_DIR%packages\contracts\python\src;%ROOT_DIR%packages\worker-sdk\python\src;%ROOT_DIR%packages\shared-tool-sdk\src;%ROOT_DIR%services\experiment_controller\src;%ROOT_DIR%services\model_gateway\src;%ROOT_DIR%services\tool_broker\src;%ROOT_DIR%services\builder\src;%ROOT_DIR%services\telemetry\src;%ROOT_DIR%services\evaluation\src;%ROOT_DIR%services\recommendation\src;%ROOT_DIR%services\artifact_exporter\src;%ROOT_DIR%apps\api\src"
+set "PYTHONPATH=%ROOT_DIR%packages\kernel\src;%ROOT_DIR%packages\contracts\python\src;%ROOT_DIR%packages\worker-sdk\python\src;%ROOT_DIR%packages\shared-tool-sdk\src;%ROOT_DIR%services\experiment_controller\src;%ROOT_DIR%services\model_gateway\src;%ROOT_DIR%services\tool_broker\src;%ROOT_DIR%services\builder\src;%ROOT_DIR%services\telemetry\src;%ROOT_DIR%services\evaluation\src;%ROOT_DIR%services\recommendation\src;%ROOT_DIR%services\artifact_exporter\src;%ROOT_DIR%apps\api\src;%ROOT_DIR%apps\cli\src"
 
 echo [*] Checking Python environment...
 where python >nul 2>&1

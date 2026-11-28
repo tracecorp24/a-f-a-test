@@ -1,5 +1,81 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { THEME } from "../data/mockData";
+
+export function Modal({
+  title,
+  onClose,
+  children,
+  wide = false,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
+  // Portalla <body>'ye taşınır: üst elementlerin stacking/konum etkisinden bağımsız.
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden"; // arka plan kaydırmasını kilitle
+    return () => {
+      window.removeEventListener("keydown", handler);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose]);
+  return createPortal(
+    <div className="arena-modal-backdrop" onClick={onClose}>
+      <div className={`arena-modal${wide ? " arena-modal-wide" : ""}`} role="dialog" aria-modal="true" aria-label={title} onClick={(event) => event.stopPropagation()}>
+        <header className="arena-modal-head">
+          <h3>{title}</h3>
+          <button type="button" className="arena-btn" onClick={onClose} aria-label="Kapat">×</button>
+        </header>
+        <div className="arena-modal-body">{children}</div>
+        <footer className="arena-modal-foot">
+          <button type="button" className="arena-btn arena-btn-primary" onClick={onClose}>Kapat (Esc)</button>
+        </footer>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+const GENERATION_STEPS = [
+  "İstek analiz ediliyor",
+  "Akış tasarlanıyor",
+  "Sorular hazırlanıyor",
+  "Doğrulanıyor ve kaydediliyor",
+];
+
+/** Step-by-step visible progress while the LLM prepares the draft (no dead waiting). */
+export function GenerationProgress({ visible, note }: { visible: boolean; note?: string }) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!visible) return;
+    const timer = window.setInterval(() => setTick((value) => value + 1), 2200);
+    return () => window.clearInterval(timer);
+  }, [visible]);
+  if (!visible) return null;
+  return (
+    <section className="arena-card arena-card-pad arena-progress" role="status">
+      <h2 className="arena-card-title">AI taslağı hazırlıyor…</h2>
+      <ol className="arena-progress-steps">
+        {GENERATION_STEPS.map((label, index) => {
+          // Tek yönlü ilerleme: son adımda kalır, başa sarmaz (yanıltıcı olmasın diye)
+          const activeIndex = Math.min(GENERATION_STEPS.length - 1, tick);
+          const state = index < activeIndex ? "done" : index === activeIndex ? "active" : "wait";
+          return <li key={label} className="arena-progress-step" data-state={state}>{label}</li>;
+        })}
+      </ol>
+      <p style={{ fontSize: 12, color: THEME.muted, margin: "10px 0 0" }}>
+        {note ?? "Bu işlem gerçek bir model çağrısı içerir; büyük görevlerde 1-2 dakika sürebilir. Sayfayı kapatmadığın sürece işlem devam eder."}
+      </p>
+    </section>
+  );
+}
 
 export function PageHeader({
   eyebrow,
@@ -146,9 +222,9 @@ export function SvgNode({
     : isRunning
       ? THEME.cyan
       : isComplete
-        ? "#2e6f5e"
-        : "#2b3b4e";
-  const fillColor = selected ? "#162b3d" : "#111824";
+        ? "var(--accent-green)"
+        : "var(--border)";
+  const fillColor = selected ? "var(--bg-active)" : "var(--bg-card)";
 
   return (
     <g onClick={onClick} style={{ cursor: onClick ? "pointer" : "default" }}>
@@ -165,10 +241,10 @@ export function SvgNode({
       <text x={x + 14} y={y + 34} fill={THEME.cyan} fontSize={16}>
         {icon}
       </text>
-      <text x={x + 35} y={y + 26} fill="#f1f5f9" fontSize={12.5} fontWeight={600}>
+      <text x={x + 35} y={y + 26} fill="var(--text-primary)" fontSize={12.5} fontWeight={600}>
         {title}
       </text>
-      <text x={x + 35} y={y + 43} fill="#94a3b8" fontSize={10.5}>
+      <text x={x + 35} y={y + 43} fill="var(--text-secondary)" fontSize={10.5}>
         {sub}
       </text>
     </g>

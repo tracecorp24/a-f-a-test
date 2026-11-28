@@ -6,6 +6,7 @@ import { ApiError, frameworkName, post, STATUS_LABEL, type Candidate, type Ranki
 import { resolveExperimentId, useExperiment, useExperimentList } from "../api/useExperiment";
 import { ExperimentPicker, NoExperiment } from "../components/ExperimentPicker";
 import { KVRow, PageHeader } from "../components/UI";
+import { useI18n } from "../i18n";
 
 const DEFAULT_WEIGHTS = [40, 25, 20, 15];
 const DEFAULT_MIN_QUALITY = 80;
@@ -19,6 +20,7 @@ function domainOf(values: number[]): [number, number] {
 }
 
 export function ComparisonLabPage() {
+  const { t, locale } = useI18n();
   const routed = (useLocation().state as { experimentId?: string } | null)?.experimentId;
   const { list, loading: listLoading, error: listError } = useExperimentList();
   const [chosen, setChosen] = useState<string | null>(null);
@@ -55,7 +57,7 @@ export function ComparisonLabPage() {
         min_quality: minQuality,
       })
         .then((r) => alive && (setRanking(r), setRankError("")))
-        .catch((e) => alive && setRankError(e instanceof ApiError ? e.message : "Sıralama alınamadı."));
+        .catch((e) => alive && setRankError(e instanceof ApiError ? e.message : t("Sıralama alınamadı.")));
     }, 200);
     return () => {
       alive = false;
@@ -92,7 +94,7 @@ export function ComparisonLabPage() {
 
   if (!expId) return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <PageHeader eyebrow="KARAR MOTORU VE PARETO SINIRI" title="Karşılaştırma Laboratuvarı ve Öneri" description="Ölçülen sonuçlara göre öncelik ağırlıklarını belirleyin ve kazananı seçin." />
+      <PageHeader eyebrow={t("KARAR MOTORU VE PARETO SINIRI")} title={t("Karşılaştırma Laboratuvarı ve Öneri")} description={t("Ölçülen sonuçlara göre öncelik ağırlıklarını belirleyin ve kazananı seçin.")} />
       <NoExperiment loading={listLoading} error={listError} />
     </div>
   );
@@ -102,18 +104,18 @@ export function ComparisonLabPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <PageHeader
-        eyebrow="KARAR MOTORU VE PARETO SINIRI"
-        title="Karşılaştırma Laboratuvarı ve Öneri"
-        description="Öncelik ağırlıklarını belirleyin, 2D Pareto dengesini inceleyin ve kazanan adayı seçin. Skorlar seçili deneyin ölçümlerinden hesaplanır."
+        eyebrow={t("KARAR MOTORU VE PARETO SINIRI")}
+        title={t("Karşılaştırma Laboratuvarı ve Öneri")}
+        description={t("Öncelik ağırlıklarını belirleyin, 2D Pareto dengesini inceleyin ve kazanan adayı seçin. Skorlar seçili deneyin ölçümlerinden hesaplanır.")}
         right={
           <>
             <ExperimentPicker list={list} value={expId} onChange={setChosen} />
             <div className="arena-status-bar">
-              <span>Aday Havuzu: <strong style={{ color: THEME.text }}>{candidates.length}</strong></span>
+              <span>{t("Aday Havuzu: ")}<strong style={{ color: THEME.text }}>{candidates.length}</strong></span>
               <span style={{ color: THEME.line }}>|</span>
-              <span style={{ color: THEME.green }}>{eligiblePool.length} Uygun</span>
+              <span style={{ color: THEME.green }}>{eligiblePool.length} {t("Uygun")}</span>
               <span style={{ color: THEME.line }}>|</span>
-              <span style={{ color: THEME.cyan }}>Lider: <strong>{top ? frameworkName(top.framework_id) : "—"}</strong> ({top ? top.total_score.toFixed(1) : "—"})</span>
+              <span style={{ color: THEME.cyan }}>{t("Lider: ")}<strong>{top ? frameworkName(top.framework_id) : "—"}</strong> ({top ? top.total_score.toFixed(1) : "—"})</span>
             </div>
           </>
         }
@@ -122,34 +124,34 @@ export function ComparisonLabPage() {
       {(error || rankError) && <p role="alert" style={{ color: THEME.red }}>{error || rankError}</p>}
       {pending && experiment && (
         <p role="status" style={{ color: THEME.amber }}>
-          Deney durumu: {STATUS_LABEL[experiment.status]}. Sonuçlar tamamlandıkça güncellenir. <Link to="/execution-arena" state={{ experimentId: expId }}>Arenaya git →</Link>
+          {t("Deney durumu: ")}{t(STATUS_LABEL[experiment.status])}{t(". Sonuçlar tamamlandıkça güncellenir. ")}<Link to="/execution-arena" state={{ experimentId: expId }}>{t("Arenaya git →")}</Link>
         </p>
       )}
       {experiment && !measured.length && !pending && (
-        <p role="status" style={{ color: THEME.muted }}>Bu deneyde ölçülmüş sonuç yok.</p>
+        <p role="status" style={{ color: THEME.muted }}>{t("Bu deneyde ölçülmüş sonuç yok.")}</p>
       )}
 
       <div className="arena-pareto-layout">
         <div className="arena-pareto-sidebar">
           <section className="arena-card arena-pareto-card">
-            <div className="arena-card-header"><h2 className="arena-card-title">Kalite ve Hız Pareto Eğrisi</h2></div>
+            <div className="arena-card-header"><h2 className="arena-card-title">{t("Kalite ve Hız Pareto Eğrisi")}</h2></div>
             <div className="arena-pareto-body">
-              <svg viewBox="0 0 590 330" className="arena-pareto-chart" role="group" aria-label="Yatay eksende hız, dikey eksende kalite skoru. Ayrıntılar için bir framework noktası seçin.">
-                <rect x={chart.left} y={chart.top} width={chart.right - chart.left} height={chart.bottom - chart.top} rx="5" fill="#0d141d" />
+              <svg viewBox="0 0 590 330" className="arena-pareto-chart" role="group" aria-label={t("Yatay eksende hız, dikey eksende kalite skoru. Ayrıntılar için bir framework noktası seçin.")}>
+                <rect x={chart.left} y={chart.top} width={chart.right - chart.left} height={chart.bottom - chart.top} rx="5" fill="var(--bg-card-alt)" />
                 {ticks(xLo, xHi).map((v) => (
                   <g key={`x-${v}`}>
-                    <line x1={scaleX(v)} y1={chart.top} x2={scaleX(v)} y2={chart.bottom} stroke="#253141" />
-                    <text x={scaleX(v)} y={chart.bottom + 20} textAnchor="middle" fill="#aebbc9" fontSize="13">{v}</text>
+                    <line x1={scaleX(v)} y1={chart.top} x2={scaleX(v)} y2={chart.bottom} stroke="var(--border)" />
+                    <text x={scaleX(v)} y={chart.bottom + 20} textAnchor="middle" fill="var(--text-secondary)" fontSize="13">{v}</text>
                   </g>
                 ))}
                 {ticks(yLo, yHi).map((v) => (
                   <g key={`y-${v}`}>
-                    <line x1={chart.left} y1={scaleY(v)} x2={chart.right} y2={scaleY(v)} stroke="#253141" />
-                    <text x={chart.left - 10} y={scaleY(v) + 4} textAnchor="end" fill="#aebbc9" fontSize="13">{v}</text>
+                    <line x1={chart.left} y1={scaleY(v)} x2={chart.right} y2={scaleY(v)} stroke="var(--border)" />
+                    <text x={chart.left - 10} y={scaleY(v) + 4} textAnchor="end" fill="var(--text-secondary)" fontSize="13">{v}</text>
                   </g>
                 ))}
-                <text x={(chart.left + chart.right) / 2} y="322" textAnchor="middle" fill="#aebbc9" fontSize="14">Hız skoru →</text>
-                <text x={chart.left} y="20" fill="#aebbc9" fontSize="14">Kalite skoru ↑</text>
+                <text x={(chart.left + chart.right) / 2} y="322" textAnchor="middle" fill="var(--text-secondary)" fontSize="14">{t("Hız skoru →")}</text>
+                <text x={chart.left} y="20" fill="var(--text-secondary)" fontSize="14">{t("Kalite skoru ↑")}</text>
                 {minQuality >= yLo && <line x1={chart.left} y1={scaleY(minQuality)} x2={chart.right} y2={scaleY(minQuality)} stroke={THEME.amber} strokeDasharray="3 4" />}
                 {paretoPoints.length > 1 && (
                   <polyline points={paretoPoints.map((p) => `${scaleX(p.metrics!.speed)},${scaleY(p.metrics!.quality)}`).join(" ")} stroke={THEME.purple} strokeWidth="2" strokeDasharray="5 4" fill="none" />
@@ -160,14 +162,14 @@ export function ComparisonLabPage() {
                   const isEligible = eligibleIds.has(item.framework_id);
                   const cx = scaleX(item.metrics!.speed);
                   const cy = scaleY(item.metrics!.quality);
-                  const dotColor = isWinner ? THEME.cyan : isEligible ? THEME.blue : "#475569";
+                  const dotColor = isWinner ? THEME.cyan : isEligible ? THEME.blue : "var(--text-muted)";
                   return (
                     <g
                       key={item.id}
                       className="arena-pareto-point"
                       role="button"
                       tabIndex={0}
-                      aria-label={`${name}, kalite ${item.metrics!.quality}, hız ${item.metrics!.speed}`}
+                      aria-label={`${name}, ${t("kalite")} ${item.metrics!.quality}, ${t("hız")} ${item.metrics!.speed}`}
                       aria-pressed={item.id === selectedId}
                       onClick={() => setSelectedId(item.id)}
                       onKeyDown={(event) => {
@@ -182,16 +184,16 @@ export function ComparisonLabPage() {
                       {paretoPoints.some(({ id }) => id === item.id) && <circle cx={cx} cy={cy} r="9" fill="none" stroke={THEME.purple} />}
                       {isWinner && <circle cx={cx} cy={cy} r="12" fill="none" stroke={dotColor} strokeWidth="1.5" />}
                       <circle cx={cx} cy={cy} r={isWinner ? 7 : 5} fill={dotColor}>
-                        <title>{`${name} · Kalite ${item.metrics!.quality} · Hız ${item.metrics!.speed}`}</title>
+                        <title>{`${name} · ${t("Kalite")} ${item.metrics!.quality} · ${t("Hız")} ${item.metrics!.speed}`}</title>
                       </circle>
                     </g>
                   );
                 })}
               </svg>
               <div className="arena-pareto-legend">
-                <span style={{ color: THEME.purple }}>┄ Pareto sınırı</span>
-                <span style={{ color: THEME.amber }}>┄ Kalite eşiği · {minQuality}</span>
-                {top && <span style={{ color: THEME.cyan }}>◎ Lider · {frameworkName(top.framework_id)}</span>}
+                <span style={{ color: THEME.purple }}>{t("┄ Pareto sınırı")}</span>
+                <span style={{ color: THEME.amber }}>{t("┄ Kalite eşiği · ")}{minQuality}</span>
+                {top && <span style={{ color: THEME.cyan }}>{t("◎ Lider · ")}{frameworkName(top.framework_id)}</span>}
               </div>
             </div>
           </section>
@@ -203,50 +205,50 @@ export function ComparisonLabPage() {
                   <h2 ref={detailHeading} id="pareto-framework-details" className="arena-card-title">{selectedName}</h2>
                   <span style={{ color: THEME.muted }}>{selectedStatic ? `${selectedStatic.architecture} · v${selectedStatic.version}` : selected.framework_id}</span>
                 </div>
-                <button type="button" className="arena-btn" onClick={() => setSelectedId(null)}>Kapat</button>
+                <button type="button" className="arena-btn" onClick={() => setSelectedId(null)}>{t("Kapat")}</button>
               </div>
               <div className="arena-card-pad">
                 {selectedPipeline && (
                   <>
-                    <h3 className="arena-card-title">Framework Akışı</h3>
-                    <ol className="task-pipeline-flow">{selectedPipeline.nodes.map((node) => <li key={node}>{node}</li>)}</ol>
-                    <p style={{ color: THEME.muted }}>{selectedPipeline.desc}</p>
+                    <h3 className="arena-card-title">{t("Framework Akışı")}</h3>
+                    <ol className="task-pipeline-flow">{selectedPipeline.nodes.map((node) => <li key={node}>{t(node)}</li>)}</ol>
+                    <p style={{ color: THEME.muted }}>{t(selectedPipeline.desc)}</p>
                   </>
                 )}
                 <div className="arena-grid-2-asym">
                   <div>
-                    <h3 className="arena-card-title">Ölçülen Çalıştırma</h3>
-                    <KVRow label="Model" value={experiment?.model_snapshot ?? "—"} />
-                    <KVRow label="Token (tahmin)" value={selected.usage ? `~${selected.usage.total_tokens.toLocaleString("tr-TR")}` : "—"} />
-                    <KVRow label="Süre (ort.)" value={selected.duration_ms === undefined ? "—" : `${selected.duration_ms.toFixed(2)} ms`} />
-                    <KVRow label="Tekrar" value={`${selected.progress.repetitions_done} / ${selected.progress.repetitions_total}`} />
-                    <KVRow label="Ajan sayısı" value={selected.telemetry.agents.length} />
-                    <KVRow label="Ajanlar arası mesaj" value={selected.telemetry.links.reduce((s, l) => s + l.messages, 0)} />
-                    <KVRow label="İletişim tokenı (tahmin)" value={selected.telemetry.links.reduce((s, l) => s + l.tokens, 0).toLocaleString("tr-TR")} />
-                    <KVRow label="Görev devri" value={selected.telemetry.links.reduce((s, l) => s + l.handoffs, 0)} />
+                    <h3 className="arena-card-title">{t("Ölçülen Çalıştırma")}</h3>
+                    <KVRow label={t("Model")} value={experiment?.model_snapshot ?? "—"} />
+                    <KVRow label={t("Token (ledger)")} value={selected.usage ? selected.usage.total_tokens.toLocaleString(locale) : "—"} />
+                    <KVRow label={t("Süre (ort.)")} value={selected.duration_ms === undefined ? "—" : `${selected.duration_ms.toFixed(2)} ms`} />
+                    <KVRow label={t("Tekrar")} value={`${selected.progress.repetitions_done} / ${selected.progress.repetitions_total}`} />
+                    <KVRow label={t("Ajan sayısı")} value={selected.telemetry.agents.length} />
+                    <KVRow label={t("Ajanlar arası mesaj")} value={selected.telemetry.links.reduce((s, l) => s + l.messages, 0)} />
+                    <KVRow label={t("İletişim tokenı")} value={selected.telemetry.links.reduce((s, l) => s + l.tokens, 0).toLocaleString(locale)} />
+                    <KVRow label={t("Görev devri")} value={selected.telemetry.links.reduce((s, l) => s + l.handoffs, 0)} />
                   </div>
                   <div>
-                    <h3 className="arena-card-title">Karşılaştırma ve Değerlendirme</h3>
+                    <h3 className="arena-card-title">{t("Karşılaştırma ve Değerlendirme")}</h3>
                     {selected.metrics && (["quality", "speed", "token", "reliability"] as const).map((key, index) => (
-                      <KVRow key={key} label={METRIC_LABELS[index]!} value={`${selected.metrics![key]} / 100`} />
+                      <KVRow key={key} label={t(METRIC_LABELS[index]!)} value={`${selected.metrics![key]} / 100`} />
                     ))}
-                    <KVRow label="Ağırlıklı puan" value={selectedScore === undefined ? "—" : `${selectedScore.toFixed(1)} / 100`} />
-                    {selected.metrics && <KVRow label="Kalite eşiği" value={selected.metrics.quality >= minQuality ? "Geçti" : "Eşiğin altında"} />}
+                    <KVRow label={t("Ağırlıklı puan")} value={selectedScore === undefined ? "—" : `${selectedScore.toFixed(1)} / 100`} />
+                    {selected.metrics && <KVRow label={t("Kalite eşiği")} value={selected.metrics.quality >= minQuality ? t("Geçti") : t("Eşiğin altında")} />}
                     {selected.evaluation && (
                       <>
-                        <KVRow label="JSON şema kontrolü" value={selected.evaluation.schema_pass ? "Geçti" : "Başarısız"} />
-                        <KVRow label="Çelişki tespiti F1" value={selected.evaluation.conflict_f1.toFixed(2)} />
-                        <KVRow label="Bulunan / etiketli çelişki" value={`${selected.evaluation.predicted_conflicts ?? "—"} / ${selected.evaluation.labeled_conflicts}`} />
-                        <KVRow label="Dual-Gate sonucu" value={selected.evaluation.eligible ? "UYGUN" : "ELENDİ"} />
+                        <KVRow label={t("JSON şema kontrolü")} value={selected.evaluation.schema_pass ? t("Geçti") : t("Başarısız")} />
+                        <KVRow label={t("Çelişki tespiti F1")} value={selected.evaluation.conflict_f1.toFixed(2)} />
+                        <KVRow label={t("Bulunan / etiketli çelişki")} value={`${selected.evaluation.predicted_conflicts ?? "—"} / ${selected.evaluation.labeled_conflicts}`} />
+                        <KVRow label={t("Dual-Gate sonucu")} value={selected.evaluation.eligible ? t("UYGUN") : t("ELENDİ")} />
                       </>
                     )}
                   </div>
                 </div>
                 {selectedStatic && (
                   <details style={{ marginTop: 16 }}>
-                    <summary>Yetenekler (katalog)</summary>
+                    <summary>{t("Yetenekler (katalog)")}</summary>
                     {CAPABILITIES.map((label, index) => (
-                      <KVRow key={label} label={label} value={["Doğrulanmamış", "Adaptör ile", "Yerel"][selectedStatic.caps[index] ?? 0] ?? "—"} />
+                      <KVRow key={label} label={t(label)} value={t(["Doğrulanmamış", "Adaptör ile", "Yerel"][selectedStatic.caps[index] ?? 0] ?? "—")} />
                     ))}
                   </details>
                 )}
@@ -257,21 +259,21 @@ export function ComparisonLabPage() {
 
         <div className="arena-pareto-sidebar">
           <section className="arena-card">
-            <div className="arena-card-header"><h2 className="arena-card-title">Optimizasyon Ağırlıkları</h2></div>
+            <div className="arena-card-header"><h2 className="arena-card-title">{t("Optimizasyon Ağırlıkları")}</h2></div>
             <div style={{ padding: 18 }}>
               {METRIC_LABELS.map((label, idx) => {
                 const currentWeight = weights[idx] ?? 0;
                 return (
                   <div key={label} style={{ marginBottom: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
-                      <span style={{ color: THEME.muted }}>{label}</span>
+                      <span style={{ color: THEME.muted }}>{t(label)}</span>
                       <b className="arena-mono" style={{ color: THEME.text }}>{totalW ? ((currentWeight / totalW) * 100).toFixed(0) : 0}%</b>
                     </div>
                     <input
                       type="range"
                       min="0"
                       max="100"
-                      aria-label={`${label} ağırlığı`}
+                      aria-label={`${t(label)} ${t("ağırlığı")}`}
                       value={currentWeight}
                       onChange={(e) => {
                         const next = [...weights];
@@ -285,40 +287,40 @@ export function ComparisonLabPage() {
               })}
               <div style={{ marginBottom: 16, borderTop: `1px solid ${THEME.line}`, paddingTop: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
-                  <span style={{ color: THEME.muted }}>Asgari Kalite Barajı</span>
+                  <span style={{ color: THEME.muted }}>{t("Asgari Kalite Barajı")}</span>
                   <b className="arena-mono" style={{ color: THEME.amber }}>{minQuality} / 100</b>
                 </div>
-                <input type="range" min="0" max="100" aria-label="Asgari kalite barajı" value={minQuality} onChange={(e) => setMinQuality(Number(e.target.value))} style={{ width: "100%", accentColor: THEME.amber }} />
+                <input type="range" min="0" max="100" aria-label={t("Asgari kalite barajı")} value={minQuality} onChange={(e) => setMinQuality(Number(e.target.value))} style={{ width: "100%", accentColor: THEME.amber }} />
               </div>
-              <button onClick={() => { setWeights(DEFAULT_WEIGHTS); setMinQuality(DEFAULT_MIN_QUALITY); }} className="arena-btn" style={{ width: "100%" }}>Ağırlıkları Sıfırla</button>
+              <button onClick={() => { setWeights(DEFAULT_WEIGHTS); setMinQuality(DEFAULT_MIN_QUALITY); }} className="arena-btn" style={{ width: "100%" }}>{t("Ağırlıkları Sıfırla")}</button>
             </div>
           </section>
 
           <section className="arena-card">
-            <div className="arena-card-header"><h2 className="arena-card-title">Öneri Kürsüsü</h2></div>
+            <div className="arena-card-header"><h2 className="arena-card-title">{t("Öneri Kürsüsü")}</h2></div>
             <div style={{ padding: 18 }}>
               {top && topCandidate ? (
                 <div>
-                  <div className="arena-eyebrow" style={{ marginBottom: 3 }}>En Yüksek Ağırlıklı Eşleşme</div>
+                  <div className="arena-eyebrow" style={{ marginBottom: 3 }}>{t("En Yüksek Ağırlıklı Eşleşme")}</div>
                   <div style={{ fontSize: 22, fontWeight: 700, margin: "2px 0" }}>{frameworkName(top.framework_id)}</div>
                   <div className="arena-mono" style={{ fontSize: 34, fontWeight: 700, letterSpacing: "-0.04em", color: THEME.cyan }}>
                     {top.total_score.toFixed(1)}<span style={{ fontSize: 14, color: THEME.muted, fontWeight: 400 }}> / 100</span>
                   </div>
                   <p style={{ fontSize: 12, color: THEME.muted, margin: "6px 0 14px", lineHeight: 1.45 }}>
-                    Hard gate'leri (şema, F1) ve asgari kalite barajını geçen en yüksek puanlı aday.
+                    {t("Hard gate'leri (şema, F1) ve asgari kalite barajını geçen en yüksek puanlı aday.")}
                   </p>
                   {METRIC_LABELS.map((label, i) => (
-                    <KVRow key={label} label={label} value={`${top.breakdown[(["quality", "speed", "token", "reliability"] as const)[i]!]} / 100`} />
+                    <KVRow key={label} label={t(label)} value={`${top.breakdown[(["quality", "speed", "token", "reliability"] as const)[i]!]} / 100`} />
                   ))}
                   <Link to="/library-exporter" state={{ experimentId: expId, candidateId: topCandidate.id }} className="arena-btn arena-btn-primary" style={{ width: "100%", marginTop: 16 }}>
-                    Kazananı Bağımsız Proje Olarak Dışa Aktar →
+                    {t("Kazananı Bağımsız Proje Olarak Dışa Aktar →")}
                   </Link>
                 </div>
               ) : (
                 <p style={{ fontSize: 12.5, color: THEME.muted }}>
                   {ranking?.status === "NO_ELIGIBLE_CANDIDATES"
-                    ? "Hiçbir framework hard kabul kriterlerini ve kalite barajını birlikte geçemedi. Kazanan seçilmedi."
-                    : totalW ? "Sıralama için ölçülmüş sonuç bekleniyor." : "En az bir ağırlık sıfırdan büyük olmalı."}
+                    ? t("Hiçbir framework hard kabul kriterlerini ve kalite barajını birlikte geçemedi. Kazanan seçilmedi.")
+                    : totalW ? t("Sıralama için ölçülmüş sonuç bekleniyor.") : t("En az bir ağırlık sıfırdan büyük olmalı.")}
                 </p>
               )}
             </div>
@@ -328,14 +330,14 @@ export function ComparisonLabPage() {
 
       <section className="arena-card">
         <div className="arena-card-header">
-          <h2 className="arena-card-title">Ağırlıklı Sıralama Tablosu</h2>
-          <span style={{ fontSize: 11.5, color: THEME.muted }}>Normalleştirilmiş Kompozit Skor</span>
+          <h2 className="arena-card-title">{t("Ağırlıklı Sıralama Tablosu")}</h2>
+          <span style={{ fontSize: 11.5, color: THEME.muted }}>{t("Normalleştirilmiş Kompozit Skor")}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table className="arena-table">
             <thead>
               <tr>
-                <th style={{ width: 45 }}>Sıra</th><th>Framework</th><th>Kompozit Skor</th><th>Kalite</th><th>Hız</th><th>Token</th><th>Güvenilirlik</th>
+                <th style={{ width: 45 }}>{t("Sıra")}</th><th>Framework</th><th>{t("Kompozit Skor")}</th><th>{t("Kalite")}</th><th>{t("Hız")}</th><th>Token</th><th>{t("Güvenilirlik")}</th>
               </tr>
             </thead>
             <tbody>
@@ -363,11 +365,11 @@ export function ComparisonLabPage() {
                   <td className="arena-mono">—</td>
                   <td style={{ fontWeight: 600 }}>{frameworkName(c.framework_id)}</td>
                   <td colSpan={5} style={{ color: THEME.red }}>
-                    ELENDİ · {!c.evaluation!.eligible ? `Hard gate: F1 ${c.evaluation!.conflict_f1.toFixed(2)} < ${c.evaluation!.threshold.toFixed(2)}` : `Kalite ${c.metrics!.quality} < ${minQuality}`}
+                    {t("ELENDİ · ")}{!c.evaluation!.eligible ? `${t("Hard gate: F1 ")}${c.evaluation!.conflict_f1.toFixed(2)} < ${c.evaluation!.threshold.toFixed(2)}` : `${t("Kalite ")}${c.metrics!.quality} < ${minQuality}`}
                   </td>
                 </tr>
               ))}
-              {!measured.length && <tr><td colSpan={7} style={{ color: THEME.muted }}>Ölçülmüş sonuç yok.</td></tr>}
+              {!measured.length && <tr><td colSpan={7} style={{ color: THEME.muted }}>{t("Ölçülmüş sonuç yok.")}</td></tr>}
             </tbody>
           </table>
         </div>

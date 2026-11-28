@@ -1,5 +1,6 @@
 import { frameworkName, type Candidate } from "../api/client";
 import { THEME } from "../data/mockData";
+import { useI18n } from "../i18n";
 
 export function EvaluationMetrics({
   candidates,
@@ -12,6 +13,7 @@ export function EvaluationMetrics({
   threshold?: number;
   fixtureLabeled?: number;
 }) {
+  const { t } = useI18n();
   const rows = candidates
     .filter((c) => c.evaluation)
     .map((c) => ({ id: c.framework_id, name: frameworkName(c.framework_id), ev: c.evaluation! }))
@@ -23,9 +25,9 @@ export function EvaluationMetrics({
   return (
     <section aria-labelledby="evaluation-metrics" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <div className="arena-card-header">
-        <h2 className="arena-card-title" id="evaluation-metrics">Değerlendirme Metrikleri</h2>
+        <h2 className="arena-card-title" id="evaluation-metrics">{t("Değerlendirme Metrikleri")}</h2>
         <span className="arena-status-bar">
-          <span style={{ color: THEME.green }}>{qualifiedCount} / {rows.length} Baraj Geçti</span>
+          <span style={{ color: THEME.green }}>{qualifiedCount} / {rows.length} {t("Baraj Geçti")}</span>
           <span style={{ color: THEME.amber }}>F1 ≥ {gate.toFixed(2)}</span>
         </span>
       </div>
@@ -33,7 +35,7 @@ export function EvaluationMetrics({
       {rows.length === 0 ? (
         <section className="arena-card arena-card-pad">
           <p style={{ margin: 0, color: THEME.muted }}>
-            Henüz ölçülmüş değerlendirme yok. Görev Stüdyosu'ndan bir deney başlatın; sonuçlar tamamlandıkça burada görünür.
+            {t("Henüz ölçülmüş değerlendirme yok. Görev Stüdyosu'ndan bir deney başlatın; sonuçlar tamamlandıkça burada görünür.")}
           </p>
         </section>
       ) : (
@@ -41,12 +43,12 @@ export function EvaluationMetrics({
           <section className="arena-card arena-card-pad">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div>
-                <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Etiketli Çelişki F1 Skoru Karşılaştırması</h2>
+                <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{t("Etiketli Çelişki F1 Skoru Karşılaştırması")}</h2>
                 <span style={{ fontSize: 12, color: THEME.muted }}>
-                  Sarı çizgi: zorunlu hard gate barajı ({gate.toFixed(2)}){fixtureLabeled !== undefined ? ` · etiketli çelişki: ${fixtureLabeled}` : ""}
+                  {t("Sarı çizgi: zorunlu hard gate barajı")} ({gate.toFixed(2)}){fixtureLabeled !== undefined ? ` · ${t("etiketli çelişki")}: ${fixtureLabeled}` : ""}
                 </span>
               </div>
-              {best && <span style={{ fontSize: 12, color: THEME.green, fontWeight: 600 }}>En Yüksek: {best.name} ({best.ev.conflict_f1.toFixed(2)})</span>}
+              {best && <span style={{ fontSize: 12, color: THEME.green, fontWeight: 600 }}>{t("En Yüksek:")} {best.name} ({best.ev.conflict_f1.toFixed(2)})</span>}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {rows.map(({ id, name, ev }) => {
@@ -67,8 +69,8 @@ export function EvaluationMetrics({
 
           <section className="arena-card">
             <div className="arena-card-header">
-              <h2 className="arena-card-title">Dual-Gate Değerlendirme Çetelesi ({rows.length} Framework)</h2>
-              <span style={{ fontSize: 11.5, color: THEME.muted }}>Etiketli held-out çelişki seti</span>
+              <h2 className="arena-card-title">{t("Dual-Gate Değerlendirme Çetelesi")} ({rows.length} Framework)</h2>
+              <span style={{ fontSize: 11.5, color: THEME.muted }}>{t("Etiketli held-out çelişki seti")}</span>
             </div>
             <div style={{ overflowX: "auto" }}>
               <table className="arena-table">
@@ -78,15 +80,15 @@ export function EvaluationMetrics({
                     <th>Gate 1: JSON Schema</th>
                     <th>Gate 2: Conflict F1 (≥ {gate.toFixed(2)})</th>
                     <th>Precision / Recall</th>
-                    <th>Bulunan / Etiketli</th>
-                    <th>Sonuç Durumu</th>
+                    <th>{t("Bulunan / Etiketli")}</th>
+                    <th>{t("Sonuç Durumu")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map(({ id, name, ev }) => {
                     const ok = ev.conflict_f1 >= gate;
                     return (
-                      <tr key={id} style={{ backgroundColor: name === selectedFramework ? "#15283d" : undefined }}>
+                      <tr key={id} style={{ backgroundColor: name === selectedFramework ? "var(--bg-active)" : undefined }}>
                         <td style={{ fontWeight: 600 }}>{name}</td>
                         <td><span style={{ color: ev.schema_pass ? THEME.green : THEME.red, fontWeight: 600 }}>{ev.schema_pass ? "✓ PASS" : "✗ FAIL"}</span></td>
                         <td><span className="arena-mono" style={{ color: ok ? THEME.green : THEME.red, fontWeight: 700 }}>{ev.conflict_f1.toFixed(2)} {ok ? "✓" : "✗"}</span></td>
@@ -94,7 +96,7 @@ export function EvaluationMetrics({
                         <td className="arena-mono">{ev.predicted_conflicts ?? "—"} / {ev.labeled_conflicts}</td>
                         <td>
                           <span style={{ fontSize: 10.5, fontWeight: 700, padding: "3px 9px", borderRadius: 999, backgroundColor: ev.eligible ? "rgba(52, 211, 153, 0.14)" : "rgba(251, 113, 133, 0.14)", color: ev.eligible ? THEME.green : THEME.red, border: `1px solid ${ev.eligible ? THEME.green : THEME.red}` }}>
-                            {ev.eligible ? "UYGUN" : "ELENDİ"}
+                            {ev.eligible ? t("UYGUN") : t("ELENDİ")}
                           </span>
                         </td>
                       </tr>

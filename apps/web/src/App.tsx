@@ -1,5 +1,7 @@
 import { Routes, Route, Link, Navigate, useLocation } from "react-router-dom";
 import { THEME } from "./data/mockData";
+import { useI18n } from "./i18n";
+import { useTheme } from "./theme";
 import { DashboardPage } from "./pages/DashboardPage";
 import { FrameworkHubPage } from "./pages/FrameworkHubPage";
 import { TaskPipelinePage } from "./pages/TaskPipelinePage";
@@ -49,6 +51,8 @@ const NAV_PHASES = [
 
 export default function App() {
   const location = useLocation();
+  const { t, lang, toggleLang } = useI18n();
+  const { theme, toggleTheme } = useTheme();
 
   // Determine active phase
   const activePhase = NAV_PHASES.findIndex((ph) =>
@@ -88,7 +92,7 @@ export default function App() {
                       height: 16,
                       borderRadius: "50%",
                       backgroundColor: activePhase >= ph.phase ? ph.color : THEME.line,
-                      color: activePhase >= ph.phase ? "#0b1018" : THEME.muted,
+                      color: activePhase >= ph.phase ? "var(--bg-shell)" : THEME.muted,
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -106,7 +110,7 @@ export default function App() {
                       color: activePhase >= ph.phase ? ph.color : THEME.muted,
                     }}
                   >
-                    {ph.label}
+                    {t(ph.label)}
                   </span>
                 </div>
 
@@ -126,7 +130,7 @@ export default function App() {
                         }
                       >
                         <span className="arena-nav-icon">{item.icon}</span>
-                        <span>{item.label}</span>
+                        <span>{t(item.label)}</span>
                       </Link>
                     );
                   })}
@@ -138,10 +142,10 @@ export default function App() {
           <div className="arena-sidebar-footer">
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: THEME.green }} />
-              <span style={{ fontWeight: 600, color: THEME.text }}>10 Framework Kayıtlı</span>
+              <span style={{ fontWeight: 600, color: THEME.text }}>{t("10 Framework Kayıtlı")}</span>
             </div>
             <div style={{ fontSize: 10.5, color: THEME.subtle }}>
-              Tek Model · Sıfır Önyargı · ADR Uyumlu
+              {t("Tek Model · Sıfır Önyargı · ADR Uyumlu")}
             </div>
           </div>
         </aside>
@@ -149,7 +153,7 @@ export default function App() {
         {/* Main column */}
         <div className="arena-main-col">
           <header className="arena-topbar">
-            <nav className="arena-phase-progress" aria-label="İş akışı aşamaları">
+            <nav className="arena-phase-progress" aria-label={t("İş akışı aşamaları")}>
               {NAV_PHASES.map((phase) => (
                 <Link
                   key={phase.phase}
@@ -160,18 +164,41 @@ export default function App() {
                   style={{ color: activePhase >= phase.phase ? phase.color : THEME.muted }}
                 >
                   <span className="arena-phase-number">{phase.phase}</span>
-                  <span>{phase.label}</span>
+                  <span>{t(phase.label)}</span>
                 </Link>
               ))}
             </nav>
 
-            <span
-              className="arena-pill"
-              style={{ background: "rgba(52, 211, 153, 0.1)", color: THEME.green, borderColor: "rgba(52, 211, 153, 0.28)" }}
-            >
-              <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: THEME.green }} />
-              Dual-Gate Uyumluluğu Aktif
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              <span
+                className="arena-pill"
+                style={{ background: "rgba(52, 211, 153, 0.1)", color: THEME.green, borderColor: "rgba(52, 211, 153, 0.28)" }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: THEME.green }} />
+                {t("Dual-Gate Uyumluluğu Aktif")}
+              </span>
+
+              <button
+                type="button"
+                className="arena-icon-btn"
+                onClick={toggleLang}
+                title={lang === "tr" ? "Switch to English" : "Türkçe'ye geç"}
+                aria-label={lang === "tr" ? "Switch to English" : "Türkçe'ye geç"}
+              >
+                <span aria-hidden="true">🌐</span>
+                <span className="arena-icon-btn-label">{lang === "tr" ? "EN" : "TR"}</span>
+              </button>
+
+              <button
+                type="button"
+                className="arena-icon-btn"
+                onClick={toggleTheme}
+                title={theme === "dark" ? t("Açık tema") : t("Koyu tema")}
+                aria-label={theme === "dark" ? t("Açık tema") : t("Koyu tema")}
+              >
+                <span aria-hidden="true">{theme === "dark" ? "☀️" : "🌙"}</span>
+              </button>
+            </div>
           </header>
 
           <main className="arena-content">
