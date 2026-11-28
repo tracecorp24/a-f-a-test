@@ -172,7 +172,7 @@ export default function App() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <span
                 className="arena-pill"
-                style={{ background: "rgba(52, 211, 153, 0.1)", color: THEME.green, borderColor: "rgba(52, 211, 153, 0.28)" }}
+                style={{ background: "var(--accent-green-soft)", color: THEME.green, borderColor: "var(--accent-green-line)" }}
               >
                 <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: THEME.green }} />
                 {t("Dual-Gate Uyumluluğu Aktif")}

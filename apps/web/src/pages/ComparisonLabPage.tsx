@@ -123,7 +123,7 @@ export function ComparisonLabPage() {
 
       {(error || rankError) && <p role="alert" style={{ color: THEME.red }}>{error || rankError}</p>}
       {pending && experiment && (
-        <p role="status" style={{ color: THEME.amber }}>
+        <p role="status" style={{ color: "var(--accent-amber-ink)" }}>
           {t("Deney durumu: ")}{t(STATUS_LABEL[experiment.status])}{t(". Sonuçlar tamamlandıkça güncellenir. ")}<Link to="/execution-arena" state={{ experimentId: expId }}>{t("Arenaya git →")}</Link>
         </p>
       )}
@@ -152,7 +152,7 @@ export function ComparisonLabPage() {
                 ))}
                 <text x={(chart.left + chart.right) / 2} y="322" textAnchor="middle" fill="var(--text-secondary)" fontSize="14">{t("Hız skoru →")}</text>
                 <text x={chart.left} y="20" fill="var(--text-secondary)" fontSize="14">{t("Kalite skoru ↑")}</text>
-                {minQuality >= yLo && <line x1={chart.left} y1={scaleY(minQuality)} x2={chart.right} y2={scaleY(minQuality)} stroke={THEME.amber} strokeDasharray="3 4" />}
+                {minQuality >= yLo && <line x1={chart.left} y1={scaleY(minQuality)} x2={chart.right} y2={scaleY(minQuality)} stroke="var(--accent-amber-ink)" strokeDasharray="3 4" />}
                 {paretoPoints.length > 1 && (
                   <polyline points={paretoPoints.map((p) => `${scaleX(p.metrics!.speed)},${scaleY(p.metrics!.quality)}`).join(" ")} stroke={THEME.purple} strokeWidth="2" strokeDasharray="5 4" fill="none" />
                 )}
@@ -192,7 +192,7 @@ export function ComparisonLabPage() {
               </svg>
               <div className="arena-pareto-legend">
                 <span style={{ color: THEME.purple }}>{t("┄ Pareto sınırı")}</span>
-                <span style={{ color: THEME.amber }}>{t("┄ Kalite eşiği · ")}{minQuality}</span>
+                <span style={{ color: "var(--accent-amber-ink)" }}>{t("┄ Kalite eşiği · ")}{minQuality}</span>
                 {top && <span style={{ color: THEME.cyan }}>{t("◎ Lider · ")}{frameworkName(top.framework_id)}</span>}
               </div>
             </div>
@@ -291,9 +291,9 @@ export function ComparisonLabPage() {
               <div style={{ marginBottom: 16, borderTop: `1px solid ${THEME.line}`, paddingTop: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5 }}>
                   <span style={{ color: THEME.muted }}>{t("Asgari Kalite Barajı")}</span>
-                  <b className="arena-mono" style={{ color: THEME.amber }}>{minQuality} / 100</b>
+                  <b className="arena-mono" style={{ color: "var(--accent-amber-ink)" }}>{minQuality} / 100</b>
                 </div>
-                <input type="range" min="0" max="100" aria-label={t("Asgari kalite barajı")} value={minQuality} onChange={(e) => setMinQuality(Number(e.target.value))} style={{ width: "100%", accentColor: THEME.amber }} />
+                <input type="range" min="0" max="100" aria-label={t("Asgari kalite barajı")} value={minQuality} onChange={(e) => setMinQuality(Number(e.target.value))} style={{ width: "100%", accentColor: "var(--accent-amber-ink)" }} />
               </div>
               <button onClick={() => { setWeights(DEFAULT_WEIGHTS); setMinQuality(DEFAULT_MIN_QUALITY); }} className="arena-btn" style={{ width: "100%" }}>{t("Ağırlıkları Sıfırla")}</button>
             </div>
@@ -348,7 +348,7 @@ export function ComparisonLabPage() {
                 const isHighlight = idx === 0;
                 const values = [fw.breakdown.quality, fw.breakdown.speed, fw.breakdown.token, fw.breakdown.reliability];
                 return (
-                  <tr key={fw.candidate_id} style={{ backgroundColor: isHighlight ? "rgba(56, 189, 248, 0.06)" : "transparent", cursor: "pointer" }} onClick={() => setSelectedId(fw.candidate_id)}>
+                  <tr key={fw.candidate_id} style={{ backgroundColor: isHighlight ? "var(--accent-cyan-soft)" : "transparent", cursor: "pointer" }} onClick={() => setSelectedId(fw.candidate_id)}>
                     <td className="arena-mono" style={{ color: isHighlight ? THEME.cyan : THEME.muted, fontWeight: 700 }}>#{idx + 1}</td>
                     <td style={{ fontWeight: 600 }}>{frameworkName(fw.framework_id)}</td>
                     <td className="arena-mono" style={{ fontWeight: 700, color: isHighlight ? THEME.cyan : THEME.text }}>{fw.total_score.toFixed(1)}</td>

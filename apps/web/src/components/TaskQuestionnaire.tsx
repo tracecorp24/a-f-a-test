@@ -134,7 +134,7 @@ export function TaskQuestionnaire({
           </button>
         )}
         <span role="status">{answeredCount}/{questions.length} yanıtlandı</span>
-        {allAnswered && isLast && onFinished && <span role="status" style={{ color: "var(--accent, #53cbe8)" }}>Tüm sorular yanıtlandı — devam edebilirsin.</span>}
+        {allAnswered && isLast && onFinished && <span role="status" style={{ color: "var(--accent-cyan)" }}>Tüm sorular yanıtlandı — devam edebilirsin.</span>}
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         <button type="button" className="arena-btn" disabled={disabled} onClick={() => setInstructionOpen(true)}>

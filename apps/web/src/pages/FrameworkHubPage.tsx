@@ -177,7 +177,7 @@ export function FrameworkHubPage() {
     if (info.source === "cache") {
       return {
         label: t("Önbellekten alındı"),
-        color: THEME.amber,
+        color: "var(--accent-amber-ink)",
         title: t("Önbellekten alındı · {time}").replace(
           "{time}",
           new Date(info.fetchedAt).toLocaleString(locale)
@@ -189,8 +189,8 @@ export function FrameworkHubPage() {
 
   const capStates = [
     { icon: "?", label: t("Doğrulanmamış"), color: THEME.subtle, bg: "var(--bg-hover)" },
-    { icon: "~", label: t("Adaptör ile"), color: THEME.blue, bg: "rgba(96, 165, 250, 0.12)" },
-    { icon: "✓", label: t("Yerel (Native)"), color: THEME.green, bg: "rgba(52, 211, 153, 0.12)" },
+    { icon: "~", label: t("Adaptör ile"), color: THEME.blue, bg: "var(--accent-blue-soft)" },
+    { icon: "✓", label: t("Yerel (Native)"), color: THEME.green, bg: "var(--accent-green-soft)" },
   ];
 
   const filteredFws = FRAMEWORKS_DATA.filter((item) =>
@@ -278,7 +278,7 @@ export function FrameworkHubPage() {
                     <tr
                       key={fw.name}
                       style={{
-                        backgroundColor: isSelected ? "rgba(56, 189, 248, 0.07)" : "transparent",
+                        backgroundColor: isSelected ? "var(--accent-cyan-soft)" : "transparent",
                         cursor: "pointer",
                       }}
                       onClick={() => {
@@ -429,7 +429,7 @@ export function FrameworkHubPage() {
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
                       {[
-                        { label: t("Yıldız"), val: selectedStars.stars.toLocaleString(locale), color: THEME.amber },
+                        { label: t("Yıldız"), val: selectedStars.stars.toLocaleString(locale), color: "var(--accent-amber-ink)" },
                         { label: t("Fork"), val: selectedStars.forks != null ? selectedStars.forks.toLocaleString(locale) : "—", color: THEME.blue },
                         { label: t("Açık Issue"), val: selectedStars.openIssues != null ? selectedStars.openIssues.toLocaleString(locale) : "—", color: THEME.red },
                         { label: t("Ana Dil"), val: selectedStars.language ?? selectedFwExtra?.language ?? "—", color: THEME.cyan },
@@ -572,8 +572,8 @@ export function FrameworkHubPage() {
                   <div className="arena-grid-2-asym">
                     <div
                       style={{
-                        backgroundColor: "rgba(52, 211, 153, 0.06)",
-                        border: "1px solid rgba(52, 211, 153, 0.25)",
+                        backgroundColor: "var(--accent-green-soft)",
+                        border: "1px solid var(--accent-green-line)",
                         borderRadius: 8,
                         padding: "12px 14px",
                       }}
@@ -592,8 +592,8 @@ export function FrameworkHubPage() {
                     </div>
                     <div
                       style={{
-                        backgroundColor: "rgba(251, 113, 133, 0.06)",
-                        border: "1px solid rgba(251, 113, 133, 0.25)",
+                        backgroundColor: "var(--accent-rose-soft)",
+                        border: "1px solid var(--accent-rose-line)",
                         borderRadius: 8,
                         padding: "12px 14px",
                       }}

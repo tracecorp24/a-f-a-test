@@ -7,6 +7,39 @@
 
 ---
 
+## Tur 3 — Yeniden Koşum + Kabul Eşiği Düzeltmesi (28 Kasım 2026)
+
+Deney `exp_01M88V9T1D5WCQGPQXVYZ3QYXE` (hedef metni: "Summarize contracts", gerçek benchmark:
+**doc-review**) yeniden koşturuldu. Sonuçlar `data/arena_state.json` içinde:
+
+| Framework | Durum | Token (tiktoken, derived) | conflict_F1 | Kabul |
+|---|---|---|---|---|
+| langgraph | completed | 2.366 | 0.80 | **eligible: false** |
+| google-adk | completed | 1.399 | 0.80 | **eligible: false** |
+| crewai | completed | 2.177 | 0.80 | **eligible: false** |
+
+**Önemli düzeltme (bkz. Tur 2 tablosundan farklı okuma):** "completed" yalnızca orkestrasyonun
+hatasız bittiği anlamına gelir; **kabul eşiği geçilmedi**. Spec'te `task_data.threshold` alanı boş
+bırakıldığı için kod varsayılanı `DEFAULT_THRESHOLD = 0.90` (`doc-review` spec'i ile tutarlı)
+uygulandı; F1 0.80 < 0.90 olduğundan üç candidate de `eligible: false`. ADR-007 gereği bu adaylar
+ranking'te kazanan olamaz. (Tur 2'deki tablo, ayrı bir koşumdur; token değerleri farklıdır.)
+
+### Koşum sırasında gözlenen geçici hata ve kalıcı düzeltme
+
+- İlk yeniden deneme, OpenCode sunucusunun model kaydını yeniden yüklediği saniyelere denk geldi;
+  worker'lar hatayı **failed + açık hata mesajıyla** raporladı (yeniden başlatma sonrası
+  zombie-denetimi de doğru çalıştı). Başarısızlıklar ölçülmüş sonuç olarak kaydedilir — retry
+  yoktur (`runner.py`: "worker failure is a measured outcome").
+- **Kalıcı düzeltme:** `opencode_provider.py` (stateless yol) artık model referansı 404 döndüğünde
+  anında sunucu-varsayılanına düşmüyor; önce aynı referansla 2 kez (2s/4s backoff) yeniden
+  deneniyor, hâlâ 404 ise varsayılana düşüyor. Böylece geçici kayıt-yenileme pencereleri çalışmayı
+  bozmaz, kalıcı yanlış referans ise eskisi gibi zarifçe ele alınır.
+- **Snapshot tutarlılığı:** `experiments.start()` artık candidate'ın `code` alanını koşum
+  başında diskteki güncel skeleton'dan tazeliyor; eski koşumdan kalan bayat snapshot ile
+  event akışı arasındaki tutarsızlık bir daha oluşmaz.
+
+---
+
 ## Tur 2 — Tüm Skeleton'lar Gerçek LLM'e Bağlandı + tiktoken Token Sayımı
 
 ### Yapılan iş

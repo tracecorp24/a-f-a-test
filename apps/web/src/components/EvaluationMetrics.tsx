@@ -28,7 +28,7 @@ export function EvaluationMetrics({
         <h2 className="arena-card-title" id="evaluation-metrics">{t("Değerlendirme Metrikleri")}</h2>
         <span className="arena-status-bar">
           <span style={{ color: THEME.green }}>{qualifiedCount} / {rows.length} {t("Baraj Geçti")}</span>
-          <span style={{ color: THEME.amber }}>F1 ≥ {gate.toFixed(2)}</span>
+          <span style={{ color: "var(--accent-amber-ink)" }}>F1 ≥ {gate.toFixed(2)}</span>
         </span>
       </div>
 
@@ -57,7 +57,7 @@ export function EvaluationMetrics({
                   <div key={id} style={{ display: "grid", gridTemplateColumns: "135px 1fr 60px", alignItems: "center", gap: 14, fontSize: 12.5 }}>
                     <span style={{ fontWeight: 600, color: isPassing ? THEME.text : THEME.red }}>{name}</span>
                     <div style={{ position: "relative", height: 16, backgroundColor: THEME.panelAlt, borderRadius: 4, overflow: "hidden" }}>
-                      <div style={{ position: "absolute", left: `${gate * 100}%`, top: 0, bottom: 0, width: 2, backgroundColor: THEME.amber, zIndex: 2 }} />
+                      <div style={{ position: "absolute", left: `${gate * 100}%`, top: 0, bottom: 0, width: 2, backgroundColor: "var(--accent-amber-ink)", zIndex: 2 }} />
                       <div style={{ width: `${Math.max(0, Math.min(1, ev.conflict_f1)) * 100}%`, height: "100%", backgroundColor: isPassing ? THEME.cyan : THEME.red, borderRadius: 4 }} />
                     </div>
                     <span className="arena-mono" style={{ fontWeight: 700, color: isPassing ? THEME.green : THEME.red, textAlign: "right" }}>{ev.conflict_f1.toFixed(2)}</span>
@@ -95,7 +95,7 @@ export function EvaluationMetrics({
                         <td className="arena-mono">{ev.precision.toFixed(2)} / {ev.recall.toFixed(2)}</td>
                         <td className="arena-mono">{ev.predicted_conflicts ?? "—"} / {ev.labeled_conflicts}</td>
                         <td>
-                          <span style={{ fontSize: 10.5, fontWeight: 700, padding: "3px 9px", borderRadius: 999, backgroundColor: ev.eligible ? "rgba(52, 211, 153, 0.14)" : "rgba(251, 113, 133, 0.14)", color: ev.eligible ? THEME.green : THEME.red, border: `1px solid ${ev.eligible ? THEME.green : THEME.red}` }}>
+                          <span style={{ fontSize: 10.5, fontWeight: 700, padding: "3px 9px", borderRadius: 999, backgroundColor: ev.eligible ? "var(--accent-green-soft)" : "var(--accent-rose-soft)", color: ev.eligible ? THEME.green : THEME.red, border: `1px solid ${ev.eligible ? THEME.green : THEME.red}` }}>
                             {ev.eligible ? t("UYGUN") : t("ELENDİ")}
                           </span>
                         </td>

@@ -6,6 +6,20 @@ Biçim [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) standardına, s�
 
 ## [Unreleased]
 
+### Fixed
+
+- **Web UI (Lumen teması takip düzeltmeleri):**
+  - FOUC giderildi: `index.html` artık React mount olmadan önce `localStorage`'dan temayı okuyup `data-theme` uyguluyor (ilk boyama artık seçili temayla yapılıyor; varsayılan açık tema).
+  - Açık temada amber metin kontrastı WCAG AA'ya getirildi: yeni `--accent-amber-ink` token'ı (açık: `#A56300` ≈ 4.5:1+, koyu: `#FDD663` değişmedi); 14 `THEME.amber` metin/grafik kullanımı bu token'a bağlandı.
+  - Tanımsız `var(--accent)` fallback'i (`TaskQuestionnaire`) ve akış editöründeki sabit eski-palet kenar renkleri (`TaskFlowEditor`) tema token'larına taşındı.
+  - Eski palet kalıntıları temizlendi: `.arena-btn` slate/sky/mint hex'leri, scrollbar literalleri ve brand gradyanı token'lara bağlandı; 10 dosyadaki eski `rgba` tint'leri yeni `-soft` / `-line` tonal token'larına taşındı.
+- **OpenCode transport geçici 404 dayanıklılığı:** Stateless yolda model referansı 404 döndüğünde artık anında sunucu-varsayılanına düşülmüyor; aynı referans 2 kez (2s/4s backoff) yeniden deneniyor (sunucunun ara sıra model kaydını yeniden yüklemesi senaryosu), hâlâ çözülmezse varsayılana düşülüyor ve dönen model etiketi gerçek kaynağı yansıtıyor.
+- **Candidate kod snapshot tutarlılığı:** `experiments.start()` adayın `code` alanını her koşum başında diskteki güncel skeleton'dan tazeliyor; eski koşumdan kalan bayat snapshot ile event akışı arasındaki tutarsızlık önlendi.
+
+### Changed
+
+- **Canlı test raporu (Tur 3) netleştirildi:** `exp_01M88V9T1D5WCQGPQXVYZ3QYXE` yeniden koşumu belgelendi; "completed" = orkestrasyon tamam, **kabul eşiği geçilmedi** (conflict_F1 0.80 < spec eşiği 0.90 → üç aday da `eligible: false`, ADR-007 gereği ranking'e giremez).
+
 ## [0.2.0] - 2026-11-25
 
 ### Changed

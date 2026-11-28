@@ -134,7 +134,7 @@ export function LibraryExporterPage() {
           <div className="arena-card arena-card-pad">
             {(error || actionError) && <p role="alert" style={{ color: THEME.red }}>{actionError || error}</p>}
             {experiment && experiment.status !== "completed" && (
-              <p role="status" style={{ color: THEME.amber }}>{t("Deney durumu: ")}{t(STATUS_LABEL[experiment.status])}. {t("Tamamlanan adaylar dışa aktarılabilir.")}</p>
+              <p role="status" style={{ color: "var(--accent-amber-ink)" }}>{t("Deney durumu: ")}{t(STATUS_LABEL[experiment.status])}. {t("Tamamlanan adaylar dışa aktarılabilir.")}</p>
             )}
 
             <div role="group" aria-label={t("Paket biçimi")} style={{ display: "flex", gap: 8, marginBottom: 18, borderBottom: `1px solid ${THEME.line}`, paddingBottom: 14, flexWrap: "wrap" }}>
@@ -214,7 +214,7 @@ export function LibraryExporterPage() {
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 20, padding: 14, borderRadius: 8, backgroundColor: "rgba(52, 211, 153, 0.08)", border: "1px solid rgba(52, 211, 153, 0.25)" }}>
+            <div style={{ marginTop: 20, padding: 14, borderRadius: 8, backgroundColor: "var(--accent-green-soft)", border: "1px solid var(--accent-green-line)" }}>
               <div style={{ color: THEME.green, fontWeight: 600, fontSize: 12, marginBottom: 5 }}>{t("✓ ADR-0009 İzolasyon Garantisi")}</div>
               <div style={{ color: THEME.muted, fontSize: 12, lineHeight: 1.55 }}>
                 {t("Paket oluşturulurken kaynak kod gizli anahtar desenleri için taranır; bulunursa dışa aktarım engellenir. İndirilen paketin SHA-256 özeti sunucuda yeniden doğrulanır.")}

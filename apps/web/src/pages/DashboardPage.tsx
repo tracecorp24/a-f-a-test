@@ -155,8 +155,8 @@ export function DashboardPage() {
           style={{
             marginTop: 14,
             padding: "10px 14px",
-            backgroundColor: "rgba(52, 211, 153, 0.07)",
-            border: "1px solid rgba(52, 211, 153, 0.2)",
+            backgroundColor: "var(--accent-green-soft)",
+            border: "1px solid var(--accent-green-line)",
             borderRadius: 8,
             fontSize: 12.5,
             color: THEME.muted,
@@ -180,7 +180,7 @@ export function DashboardPage() {
               {system ? `${system.fixture.integrity_verified ? "✓" : "✗"} ${t("Benchmark verisi bütünlüğü")} (${system.fixture.benchmark_id})` : "…"}
             </span>
             <span style={{ color: THEME.muted }}>{system ? `${system.frameworks} ${t("framework işçisi")}` : ""}</span>
-            <span style={{ color: system?.design_model_configured ? THEME.green : THEME.amber }}>
+            <span style={{ color: system?.design_model_configured ? THEME.green : "var(--accent-amber-ink)" }}>
               {system ? (system.design_model_configured ? t("✓ AI görev tasarımı yapılandırıldı") : t("AI görev tasarımı için ARENA_DESIGN_MODEL / ARENA_DESIGN_API_KEY tanımlı değil (demo görev kullanılabilir)")) : ""}
             </span>
           </div>

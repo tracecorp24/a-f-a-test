@@ -123,7 +123,7 @@ export function DevelopmentStudioPage() {
                   </button>
                 ))}
               </div>
-              <span style={{ fontSize: 11, color: THEME.green, background: "rgba(52, 211, 153, 0.12)", padding: "3px 10px", borderRadius: 999, border: "1px solid rgba(52, 211, 153, 0.35)", fontWeight: 600 }}>
+              <span style={{ fontSize: 11, color: THEME.green, background: "var(--accent-green-soft)", padding: "3px 10px", borderRadius: 999, border: "1px solid var(--accent-green-line)", fontWeight: 600 }}>
                 {t("Depodaki Gerçek Dosya")}
               </span>
             </div>

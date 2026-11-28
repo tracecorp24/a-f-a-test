@@ -229,6 +229,10 @@ class ArenaState:
                 cand.update(
                     {
                         "status": "queued",
+                        # Snapshot the skeleton actually executed by this run: a
+                        # rebuild may not have happened since the previous run, so
+                        # the build-time copy can be stale.
+                        "code": runner.load_skeleton_source(cand["framework_id"]),
                         "metrics": None,
                         "evaluation": None,
                         "usage": None,

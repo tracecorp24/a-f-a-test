@@ -57,9 +57,9 @@ function FlowCanvas({
             const path = returning
               ? `M${startX} ${startY} H${startX + 22} V${returnY} H${endX - 18} V${endY} H${endX - 7}`
               : `M${startX} ${startY} H${middleX} V${endY} H${endX - 7}`;
-            const color = edge.kind === "feedback" ? "#ae92f5" : edge.kind === "yes" ? "#52d8a4"
-              : edge.kind === "no" || edge.kind === "error" ? "#ef8694" : "#53cbe8";
-            return <path key={`${edge.from}-${edge.to}-${edge.kind}`} d={path} fill="none" stroke={color} strokeWidth="2" strokeDasharray={edge.kind === "feedback" ? "6 4" : undefined} markerEnd={`url(#${markerId})`} />;
+            const colorVar = edge.kind === "feedback" ? "var(--accent-purple)" : edge.kind === "yes" ? "var(--accent-green)"
+              : edge.kind === "no" || edge.kind === "error" ? "var(--accent-rose)" : "var(--accent-cyan)";
+            return <path key={`${edge.from}-${edge.to}-${edge.kind}`} d={path} fill="none" strokeWidth="2" strokeDasharray={edge.kind === "feedback" ? "6 4" : undefined} markerEnd={`url(#${markerId})`} style={{ stroke: colorVar }} />;
           })}
         </svg>
         {flow.blocks.map((block) => (

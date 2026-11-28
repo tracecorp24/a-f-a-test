@@ -11,6 +11,7 @@ being exposed to the arena directly (ADR-0003: single provider credential).
 """
 
 from datetime import datetime, timezone
+import asyncio
 import base64
 import json
 import time
@@ -21,6 +22,12 @@ from arena_gateway.domain.token_counter import count_tokens
 from arena_kernel.errors import ArenaError
 
 _PROBE_CAPABILITIES = ("tool_calling", "streaming", "structured_output", "usage_reporting")
+
+# The OpenCode server occasionally reloads its model registry; during that window a
+# known-good model ref resolves as 404. Retry the same ref with a short backoff
+# before giving up and falling back to the server-default model.
+_MODEL_404_RETRY_ATTEMPTS = 2
+_MODEL_404_RETRY_BACKOFF_SECONDS = 2.0
 
 
 class OpenCodeServerAdapter:
@@ -164,6 +171,7 @@ class OpenCodeServerAdapter:
         body: dict[str, Any] = {"prompt": prompt}
         if self.model_id and self.provider_id:
             body["model"] = {"id": self.model_id, "providerID": self.provider_id}
+        used_server_default = False
         try:
             response = await client.post(
                 f"{self.base_url}/api/experimental/generate/text",
@@ -177,20 +185,42 @@ class OpenCodeServerAdapter:
                 retryable=True,
             )
         if response.status_code == 404 and body.get("model") is not None:
-            # The server could not resolve the requested model ref: fall back to the
-            # server's base-configuration default model (stateless generate endpoint).
-            try:
-                response = await client.post(
-                    f"{self.base_url}/api/experimental/generate/text",
-                    headers={**self._auth_header(), "Content-Type": "application/json"},
-                    json={"prompt": prompt},
-                )
-            except httpx.RequestError as exc:
-                raise ArenaError(
-                    code="GATEWAY_PROVIDER_UNREACHABLE",
-                    message=f"Failed to communicate with OpenCode server: {exc}",
-                    retryable=True,
-                )
+            # First retry the exact same model ref: a 404 right after a server
+            # restart is usually the registry reload, not a real miss.
+            resolved = False
+            for attempt in range(_MODEL_404_RETRY_ATTEMPTS):
+                await asyncio.sleep(_MODEL_404_RETRY_BACKOFF_SECONDS * (attempt + 1))
+                try:
+                    response = await client.post(
+                        f"{self.base_url}/api/experimental/generate/text",
+                        headers={**self._auth_header(), "Content-Type": "application/json"},
+                        json=body,
+                    )
+                except httpx.RequestError as exc:
+                    raise ArenaError(
+                        code="GATEWAY_PROVIDER_UNREACHABLE",
+                        message=f"Failed to communicate with OpenCode server: {exc}",
+                        retryable=True,
+                    )
+                if response.status_code != 404:
+                    resolved = True
+                    break
+            if not resolved:
+                # The server could not resolve the requested model ref: fall back to the
+                # server's base-configuration default model (stateless generate endpoint).
+                used_server_default = True
+                try:
+                    response = await client.post(
+                        f"{self.base_url}/api/experimental/generate/text",
+                        headers={**self._auth_header(), "Content-Type": "application/json"},
+                        json={"prompt": prompt},
+                    )
+                except httpx.RequestError as exc:
+                    raise ArenaError(
+                        code="GATEWAY_PROVIDER_UNREACHABLE",
+                        message=f"Failed to communicate with OpenCode server: {exc}",
+                        retryable=True,
+                    )
 
         if response.status_code != 200:
             raise ArenaError(
@@ -223,7 +253,7 @@ class OpenCodeServerAdapter:
 
         return {
             "id": f"opencode-{datetime.now(timezone.utc).timestamp():.0f}",
-            "model": "server-default",
+            "model": "server-default" if used_server_default else self.model_id,
             "choices": [{"message": {"content": content}}],
             "usage": usage,
         }

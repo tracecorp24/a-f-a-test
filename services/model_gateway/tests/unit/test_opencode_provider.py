@@ -3,7 +3,8 @@
 Contract (ADR-0006): the adapter first tries a temporary session whose assistant
 message carries the provider-reported exact token usage. When the session flow is
 unavailable it uses the stateless one-shot generate endpoint; a model ref that the
-server cannot resolve (404) falls back to the server-default model.
+server cannot resolve (404) is retried with the same ref (the server occasionally
+reloads its model registry) before falling back to the server-default model.
 """
 
 import asyncio
@@ -35,6 +36,15 @@ def _adapter() -> OpenCodeServerAdapter:
         model_id="genel",
         provider_id="genel",
     )
+
+
+def _patch_sleep(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make the transient-404 retry backoff instantaneous in tests."""
+
+    async def instant_sleep(_seconds: float) -> None:
+        return None
+
+    monkeypatch.setattr("asyncio.sleep", instant_sleep)
 
 
 @pytest.mark.asyncio
@@ -89,7 +99,8 @@ async def test_complete_falls_back_to_stateless_and_server_default_on_404(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Without a working session flow the stateless endpoint answers; an unresolved
-    model ref (persistent 404) falls back to the server-default model."""
+    model ref (404 on every attempt) is retried twice with the same ref and then
+    falls back to the server-default model."""
     calls: list[dict[str, Any] | None] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -102,6 +113,7 @@ async def test_complete_falls_back_to_stateless_and_server_default_on_404(
             return httpx.Response(404, json={"_tag": "ModelNotFoundError"})
         return httpx.Response(200, json={"data": {"text": "fallback-ok"}})
 
+    _patch_sleep(monkeypatch)
     _patch_client(monkeypatch, handler)
 
     result = await _adapter().complete([{"role": "user", "content": "hi"}])
@@ -109,9 +121,36 @@ async def test_complete_falls_back_to_stateless_and_server_default_on_404(
     assert result["model"] == "server-default"
     assert result["choices"][0]["message"]["content"] == "fallback-ok"
     assert str(result["usage"].usage_source) == "derived"  # no provider usage available
-    # 1 attempt with the requested model ref, then 1 server-default call
+    # 1 initial + 2 same-ref retries with the model, then 1 server-default call
     assert calls.count(None) == 1
-    assert len(calls) == 2
+    assert len(calls) == 4
+
+
+@pytest.mark.asyncio
+async def test_complete_retries_same_model_ref_on_transient_404(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A 404 right after a server restart (registry reload) is retried with the
+    exact same model ref and resolves without dropping to the server default."""
+    calls: list[dict[str, Any] | None] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if path == "/api/session":
+            return httpx.Response(500, text="session unavailable")  # session flow down
+        body: dict[str, Any] = json.loads(request.content) if request.content else {}
+        calls.append(body.get("model"))
+        if path == "/api/experimental/generate/text" and body.get("model") is not None and len(calls) == 1:
+            return httpx.Response(404, json={"_tag": "ModelNotFoundError"})  # registry reload window
+        return httpx.Response(200, json={"data": {"text": "ok"}})
+
+    _patch_sleep(monkeypatch)
+    _patch_client(monkeypatch, handler)
+
+    result = await _adapter().complete([{"role": "user", "content": "hi"}])
+
+    assert result["model"] == "genel"  # stayed on the requested ref, never fell back
+    assert result["choices"][0]["message"]["content"] == "ok"
+    assert calls.count(None) == 0  # no server-default fallback call happened
+    assert len(calls) == 2  # 1 initial attempt + 1 successful retry
 
 
 @pytest.mark.asyncio

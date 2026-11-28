@@ -10,6 +10,28 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
 
+[tool.uv]
+# Kök proje bir paket değil: yalnızca workspace üyelerini yönetir.
+package = false
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    # Test ortamı, CI ile aynı üçüncü parti bağımlılıkları kurar (CI: pip install ...).
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.14.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.0.0",
+    "structlog>=24.0.0",
+    "pyyaml>=6.0.0",
+    "httpx>=0.28.0",
+    "cryptography>=44.0.0",
+    "tiktoken>=0.8.0",
+]
+
 [tool.uv.workspace]
 members = [
     "packages/contracts/python",

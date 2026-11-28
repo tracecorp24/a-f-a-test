@@ -142,7 +142,7 @@ export function ExecutionArenaPage() {
               <span style={{ color: THEME.line }}>|</span>
               <span>{t("Toplam:")} <strong className="arena-mono" style={{ color: THEME.text }}>{(totalTokens / 1000).toFixed(1)}K</strong></span>
               <span style={{ color: THEME.line }}>|</span>
-              <span className="arena-mono" style={{ color: THEME.amber }}>{(elapsedMs / 1000).toFixed(1)} {t("sn")}</span>
+              <span className="arena-mono" style={{ color: "var(--accent-amber-ink)" }}>{(elapsedMs / 1000).toFixed(1)} {t("sn")}</span>
             </div>
             {status === "running" && <button disabled={busy} onClick={() => void control("pause")} className="arena-btn arena-btn-primary">{t("❚❚ Duraklat")}</button>}
             {status === "paused" && <button disabled={busy} onClick={() => void control("resume")} className="arena-btn arena-btn-primary">{t("▶ Sürdür")}</button>}

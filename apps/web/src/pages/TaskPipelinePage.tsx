@@ -374,8 +374,8 @@ export function TaskPipelinePage() {
       </nav>
 
       {generationError && <p role="alert">{generationError}</p>}
-      {notice && !generationError && <p role="status" style={{ color: THEME.amber }}>{notice}</p>}
-      {builtInNotice && <p role="status" style={{ color: THEME.amber }}>{t("AI sağlayıcısı yapılandırılmadığı için yerleşik akış ve soru şablonu kullanıldı. Akışı ve yanıtları düzenleyebilirsiniz.")}</p>}
+      {notice && !generationError && <p role="status" style={{ color: "var(--accent-amber-ink)" }}>{notice}</p>}
+      {builtInNotice && <p role="status" style={{ color: "var(--accent-amber-ink)" }}>{t("AI sağlayıcısı yapılandırılmadığı için yerleşik akış ve soru şablonu kullanıldı. Akışı ve yanıtları düzenleyebilirsiniz.")}</p>}
       <GenerationProgress visible={generating} note={t("Gerçek model çağrısı yapılıyor; büyük görevlerde 1-2 dakika sürebilir. Bu adım tamamlanmadan sonraki adım açılmaz — sayfayı kapatırsan bile kayıt tutulur.")} />
 
       {history.length > 0 && (
@@ -383,7 +383,7 @@ export function TaskPipelinePage() {
           <summary>{t("Geçmiş taslaklar")} ({history.length}) — {t("kaldığın yerden devam et")}</summary>
           <ul style={{ display: "grid", gap: 8, margin: "12px 0 0", padding: 0, listStyle: "none" }}>
             {history.map((entry) => (
-              <li key={entry.ts} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, padding: "8px 10px", border: "1px solid rgba(83,203,232,0.25)", borderRadius: 8 }}>
+              <li key={entry.ts} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, padding: "8px 10px", border: "1px solid var(--accent-cyan-line)", borderRadius: 8 }}>
                 <span style={{ flex: "1 1 240px", overflowWrap: "anywhere" }}>{entry.label}</span>
                 <small style={{ color: THEME.cyan }}>{new Date(entry.ts).toLocaleString("tr-TR")}</small>
                 <button type="button" className="arena-btn" disabled={generating} onClick={() => restoreSnapshot(entry)}>{t("Yükle")}</button>
